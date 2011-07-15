@@ -8,6 +8,8 @@ package org.eclipse.tesla.incremental.internal;
  *   http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
+/**
+ */
 public class Path
 {
 
@@ -34,9 +36,7 @@ public class Path
     public enum State
     {
 
-        ADDED,
-
-        MODIFIED,
+        PRESENT,
 
         DELETED
 

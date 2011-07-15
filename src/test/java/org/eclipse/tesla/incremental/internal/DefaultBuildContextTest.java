@@ -13,6 +13,9 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -35,16 +38,20 @@ public class DefaultBuildContextTest
 
     private File contextDirectory;
 
+    private File inputDirectory;
+
     private File outputDirectory;
 
     @Before
     public void init()
         throws Exception
     {
-        outputDirectory = new File( "target/tests/output" ).getAbsoluteFile();
-        contextDirectory =
-            new File( "target/tests/" + getClass().getSimpleName() + Long.toHexString( System.currentTimeMillis() ) ).getAbsoluteFile();
-        Utils.delete( contextDirectory );
+        String name = getClass().getSimpleName() + Long.toHexString( System.currentTimeMillis() );
+        outputDirectory = new File( "target/tests/" + name + "out" ).getAbsoluteFile();
+        outputDirectory.mkdirs();
+        inputDirectory = new File( "target/tests/" + name + "in" ).getAbsoluteFile();
+        inputDirectory.mkdirs();
+        contextDirectory = new File( "target/tests/" + name + "ctx" ).getAbsoluteFile();
     }
 
     @After
@@ -52,6 +59,8 @@ public class DefaultBuildContextTest
         throws Exception
     {
         Utils.delete( contextDirectory );
+        Utils.delete( inputDirectory );
+        Utils.delete( outputDirectory );
     }
 
     private BuildContext newContext()
@@ -62,6 +71,11 @@ public class DefaultBuildContextTest
     private BuildContext newContext( File outputDirectory, String pluginId )
     {
         return factory.newContext( outputDirectory, contextDirectory, pluginId );
+    }
+
+    private void assertSetEquals( Collection<?> actual, Object... expected )
+    {
+        assertEquals( new HashSet<Object>( Arrays.asList( expected ) ), new HashSet<Object>( actual ) );
     }
 
     @Test
@@ -237,6 +251,52 @@ public class DefaultBuildContextTest
     }
 
     @Test
+    public void testFinish_DeletesOutputsWhoseInputsHaveBeenDeleted()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input.java" );
+        input.createNewFile();
+        File output1 = new File( outputDirectory, "output.class" );
+        File output2 = new File( outputDirectory, "output$inner.class" );
+
+        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.java" );
+            output1.createNewFile();
+            output2.createNewFile();
+            ctx.addOutputs( input, output1, output2 );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        assertEquals( output1.getAbsolutePath(), true, output1.isFile() );
+        assertEquals( output2.getAbsolutePath(), true, output2.isFile() );
+
+        input.delete();
+        assertEquals( input.getAbsolutePath(), false, input.exists() );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        assertEquals( output1.getAbsolutePath(), false, output1.exists() );
+        assertEquals( output2.getAbsolutePath(), false, output2.exists() );
+    }
+
+    @Test
     public void testFinish_DeletesOutputsWhichAreNoLongerTouchedByAnyProcessedInputs()
         throws Exception
     {
@@ -327,6 +387,151 @@ public class DefaultBuildContextTest
 
         assertEquals( output1.getAbsolutePath(), true, output1.isFile() );
         assertEquals( output2.getAbsolutePath(), true, output2.isFile() );
+    }
+
+    @Test
+    public void testGetInputs_IncrementalBuildExcludesUnmodifiedFiles()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input.java" );
+        input.createNewFile();
+        File output = new File( outputDirectory, "output.class" );
+
+        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.java" );
+            output.createNewFile();
+            ctx.addOutputs( input, output );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+    }
+
+    @Test
+    public void testGetInputs_FullBuildIncludesUnmodifiedFiles()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input.java" );
+        input.createNewFile();
+        File output = new File( outputDirectory, "output.class" );
+
+        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.java" );
+            output.createNewFile();
+            ctx.addOutputs( input, output );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, true );
+            assertSetEquals( inputs, "input.java" );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+    }
+
+    @Test
+    public void testGetInputs_IncrementalBuildIncludesModifiedFiles()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input.java" );
+        input.createNewFile();
+        File output = new File( outputDirectory, "output.class" );
+
+        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.java" );
+            output.createNewFile();
+            ctx.addOutputs( input, output );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        Utils.writeBytes( input, (byte) 32 );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.java" );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+    }
+
+    @Test
+    public void testGetInputs_IncrementalBuildIncludesUnmodifiedFilesWhoseOutputIsMissing()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input.java" );
+        input.createNewFile();
+        File output = new File( outputDirectory, "output.class" );
+
+        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.java" );
+            output.createNewFile();
+            ctx.addOutputs( input, output );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        output.delete();
+        assertEquals( output.getAbsolutePath(), false, output.exists() );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.java" );
+        }
+        finally
+        {
+            ctx.finish();
+        }
     }
 
 }

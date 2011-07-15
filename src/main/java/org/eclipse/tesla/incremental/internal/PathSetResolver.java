@@ -8,13 +8,15 @@ package org.eclipse.tesla.incremental.internal;
  *   http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
+import java.io.File;
 import java.util.Collection;
+import java.util.Map;
 
 import org.eclipse.tesla.incremental.PathSet;
 
 public interface PathSetResolver
 {
 
-    Collection<Path> resolve( PathSet paths );
+    Collection<Path> resolve( PathSet paths, Map<File, FileState> states, Map<File, Collection<File>> outputs );
 
 }

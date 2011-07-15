@@ -33,6 +33,25 @@ public class Utils
         }
     }
 
+    public static File writeBytes( File file, byte... bytes )
+        throws IOException
+    {
+        file.getAbsoluteFile().getParentFile().mkdirs();
+        RandomAccessFile raf = new RandomAccessFile( file, "rw" );
+        try
+        {
+            if ( bytes != null )
+            {
+                raf.write( bytes );
+            }
+            return file;
+        }
+        finally
+        {
+            raf.close();
+        }
+    }
+
     public static void delete( File file )
         throws IOException
     {

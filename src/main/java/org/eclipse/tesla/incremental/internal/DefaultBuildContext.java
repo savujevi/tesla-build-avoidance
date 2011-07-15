@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.eclipse.tesla.incremental.BuildContext;
@@ -48,15 +47,18 @@ class DefaultBuildContext
 
     private Map<PathSet, byte[]> configurations;
 
-    // output -> input -> (timestamp, size)
-    private Map<File, Map<File, FileState>> inputs;
+    // input -> (timestamp, size)
+    private Map<File, FileState> inputStates;
+
+    // output -> input
+    private Map<File, Set<File>> inputs;
 
     // input -> outputs
-    private transient Map<File, Set<File>> outputs;
+    private transient Map<File, Collection<File>> outputs;
 
     private transient Collection<File> deletedInputs;
 
-    private transient Map<File, Set<File>> addedOutputs;
+    private transient Map<File, Collection<File>> addedOutputs;
 
     public DefaultBuildContext( File outputDirectory, File contextDirectory, String pluginId, Logger log )
     {
@@ -86,17 +88,17 @@ class DefaultBuildContext
                 + Integer.toHexString( pluginId.hashCode() ) + ".ser" );
 
         this.deletedInputs = new TreeSet<File>( Collections.reverseOrder() );
-        this.addedOutputs = new HashMap<File, Set<File>>();
+        this.addedOutputs = new HashMap<File, Collection<File>>();
 
         load();
 
-        this.outputs = new HashMap<File, Set<File>>();
-        for ( Map.Entry<File, Map<File, FileState>> entry : inputs.entrySet() )
+        this.outputs = new HashMap<File, Collection<File>>();
+        for ( Map.Entry<File, Set<File>> entry : inputs.entrySet() )
         {
             File outputFile = entry.getKey();
-            for ( File inputFile : entry.getValue().keySet() )
+            for ( File inputFile : entry.getValue() )
             {
-                Set<File> outputFiles = outputs.get( inputFile );
+                Collection<File> outputFiles = outputs.get( inputFile );
                 if ( outputFiles == null )
                 {
                     outputFiles = new TreeSet<File>();
@@ -129,7 +131,7 @@ class DefaultBuildContext
     public Collection<String> getInputs( PathSet paths, boolean fullBuild )
     {
         Collection<String> inputs = new ArrayList<String>();
-        for ( Path path : pathSetResolver.resolve( paths ) )
+        for ( Path path : pathSetResolver.resolve( paths, fullBuild ? null : inputStates, outputs ) )
         {
             if ( Path.State.DELETED.equals( path.getState() ) )
             {
@@ -193,7 +195,7 @@ class DefaultBuildContext
     {
         input = input.getAbsoluteFile();
 
-        Set<File> addedOutputs = this.addedOutputs.get( input );
+        Collection<File> addedOutputs = this.addedOutputs.get( input );
         if ( addedOutputs == null )
         {
             addedOutputs = new TreeSet<File>();
@@ -201,17 +203,17 @@ class DefaultBuildContext
         }
         addedOutputs.addAll( outputs );
 
-        FileState state = new FileState( input );
+        inputStates.put( input, new FileState( input ) );
 
         for ( File output : outputs )
         {
-            Map<File, FileState> inputs = this.inputs.get( output );
+            Set<File> inputs = this.inputs.get( output );
             if ( inputs == null )
             {
-                inputs = new TreeMap<File, FileState>();
+                inputs = new TreeSet<File>();
                 this.inputs.put( output, inputs );
             }
-            inputs.put( input, state );
+            inputs.add( input );
         }
     }
 
@@ -233,7 +235,7 @@ class DefaultBuildContext
 
     private void deleteOutputsWhoseInputStillExistsButNoLongerGeneratesThem()
     {
-        for ( Map.Entry<File, Set<File>> entry : addedOutputs.entrySet() )
+        for ( Map.Entry<File, Collection<File>> entry : addedOutputs.entrySet() )
         {
             File input = entry.getKey();
             Collection<File> currentOutputs = entry.getValue();
@@ -256,7 +258,11 @@ class DefaultBuildContext
         }
         for ( File output : outputs )
         {
-            Map<File, FileState> inputs = this.inputs.get( output );
+            Collection<File> inputs = this.inputs.get( output );
+            if ( inputs == null )
+            {
+                continue;
+            }
             inputs.remove( input );
             if ( inputs.isEmpty() )
             {
@@ -266,23 +272,30 @@ class DefaultBuildContext
         }
     }
 
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     private void load()
     {
-        inputs = load( ioFile, Map.class );
+        Object[] objects = load( ioFile, Map.class, Map.class );
+        inputs = (Map) objects[0];
         if ( inputs == null )
         {
-            inputs = new HashMap<File, Map<File, FileState>>();
+            inputs = new HashMap<File, Set<File>>();
         }
-        configurations = load( configFile, Map.class );
+        inputStates = (Map) objects[1];
+        if ( inputStates == null )
+        {
+            inputStates = new HashMap<File, FileState>();
+        }
+        configurations = (Map) load( configFile, Map.class )[0];
         if ( configurations == null )
         {
             configurations = new HashMap<PathSet, byte[]>();
         }
     }
 
-    private <T> T load( File inputFile, Class<T> type )
+    private Object[] load( File inputFile, Class<?>... types )
     {
+        Object[] objects = new Object[types.length];
         if ( inputFile.isFile() )
         {
             try
@@ -293,7 +306,11 @@ class DefaultBuildContext
                     ObjectInputStream ois = new ObjectInputStream( new BufferedInputStream( is ) );
                     try
                     {
-                        return type.cast( ois.readObject() );
+                        for ( int i = 0; i < types.length; i++ )
+                        {
+                            objects[i] = types[i].cast( ois.readObject() );
+                        }
+                        return objects;
                     }
                     finally
                     {
@@ -301,6 +318,10 @@ class DefaultBuildContext
                     }
                 }
                 catch ( ClassNotFoundException e )
+                {
+                    throw (IOException) new IOException( "Corrupted object stream" ).initCause( e );
+                }
+                catch ( ClassCastException e )
                 {
                     throw (IOException) new IOException( "Corrupted object stream" ).initCause( e );
                 }
@@ -314,16 +335,16 @@ class DefaultBuildContext
                 log.debug( "Could not deserialize incremental build state from " + inputFile, e );
             }
         }
-        return null;
+        return objects;
     }
 
     private void save()
     {
-        save( ioFile, inputs );
+        save( ioFile, inputs, inputStates );
         save( configFile, configurations );
     }
 
-    private void save( File outputFile, Object object )
+    private void save( File outputFile, Object... objects )
     {
         try
         {
@@ -332,7 +353,10 @@ class DefaultBuildContext
             try
             {
                 ObjectOutputStream oos = new ObjectOutputStream( new BufferedOutputStream( fos ) );
-                oos.writeObject( object );
+                for ( Object object : objects )
+                {
+                    oos.writeObject( object );
+                }
                 oos.close();
             }
             finally
