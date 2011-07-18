@@ -26,12 +26,17 @@ import org.eclipse.tesla.incremental.BuildContextFactory;
 import org.eclipse.tesla.incremental.PathSet;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.sonatype.guice.bean.containers.InjectedTest;
 
 public class DefaultBuildContextTest
     extends InjectedTest
 {
+
+    @Rule
+    public TestName testName = new TestName();
 
     @Inject
     private BuildContextFactory factory;
@@ -46,6 +51,7 @@ public class DefaultBuildContextTest
     public void init()
         throws Exception
     {
+        System.out.println( "========== " + testName.getMethodName() );
         String name = getClass().getSimpleName() + Long.toHexString( System.currentTimeMillis() );
         outputDirectory = new File( "target/tests/" + name + "out" ).getAbsoluteFile();
         outputDirectory.mkdirs();

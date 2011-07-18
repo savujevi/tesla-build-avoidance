@@ -266,6 +266,7 @@ class DefaultBuildContext
             if ( inputs.isEmpty() )
             {
                 this.inputs.remove( output );
+                log.debug( "Deleting stale output file " + output );
                 output.delete();
             }
         }
