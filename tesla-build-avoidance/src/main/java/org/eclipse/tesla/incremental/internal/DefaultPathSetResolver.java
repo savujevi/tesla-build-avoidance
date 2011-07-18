@@ -90,7 +90,7 @@ public class DefaultPathSetResolver
         for ( int i = 0; i < files.length; i++ )
         {
             String path = pathPrefix + files[i];
-            File file = new File( dir, path );
+            File file = new File( dir, files[i] );
             if ( file.isDirectory() )
             {
                 if ( !PathSet.Kind.FILES_ONLY.equals( kind ) && selector.isSelected( path ) )

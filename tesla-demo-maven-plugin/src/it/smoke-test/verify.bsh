@@ -11,6 +11,7 @@ import java.io.*;
 String[] expected =
 {
     "greetings.txt",
+    "dir/hello-world.txt",
 };
 
 File outDir = new File( basedir, "target/tesla" );

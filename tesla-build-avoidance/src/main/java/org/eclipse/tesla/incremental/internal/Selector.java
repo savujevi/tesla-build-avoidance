@@ -109,7 +109,7 @@ class Selector
                 return true;
             }
         }
-        return false;
+        return includes.length <= 0;
     }
 
 }
