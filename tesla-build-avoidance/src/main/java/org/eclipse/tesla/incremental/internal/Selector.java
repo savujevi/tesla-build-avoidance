@@ -14,6 +14,7 @@ class Selector
 {
 
     private static final String[] DEFAULTEXCLUDES = {
+
         // Miscellaneous typical temporary files
         "**/*~", "**/#*#", "**/.#*", "**/%*%", "**/._*",
 
@@ -57,7 +58,9 @@ class Selector
         "**/BitKeeper", "**/BitKeeper/**", "**/ChangeSet", "**/ChangeSet/**",
 
         // darcs
-        "**/_darcs", "**/_darcs/**", "**/.darcsrepo", "**/.darcsrepo/**", "**/-darcs-backup*", "**/.darcs-temp-mail" };
+        "**/_darcs", "**/_darcs/**", "**/.darcsrepo", "**/.darcsrepo/**", "**/-darcs-backup*", "**/.darcs-temp-mail"
+
+    };
 
     private String[] includes;
 
@@ -100,11 +103,11 @@ class Selector
         return false;
     }
 
-    public boolean couldHoldIncluded( String name )
+    public boolean couldHoldIncluded( String pathname )
     {
         for ( int i = 0; i < includes.length; i++ )
         {
-            if ( SelectorUtils.matchPatternStart( includes[i], name ) )
+            if ( SelectorUtils.matchPatternStart( includes[i], pathname ) )
             {
                 return true;
             }
