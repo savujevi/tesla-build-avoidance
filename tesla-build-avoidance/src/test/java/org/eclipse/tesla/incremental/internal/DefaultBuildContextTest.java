@@ -292,7 +292,7 @@ public class DefaultBuildContextTest
         File output1 = new File( outputDirectory, "output.class" );
         File output2 = new File( outputDirectory, "output$inner.class" );
 
-        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+        PathSet paths = new PathSet( inputDirectory );
 
         BuildContext ctx = newContext();
         try
@@ -337,7 +337,7 @@ public class DefaultBuildContextTest
         input.createNewFile();
         File output = new File( outputDirectory, "output.class" );
 
-        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+        PathSet paths = new PathSet( inputDirectory );
 
         BuildContext ctx = newContext();
         try
@@ -469,7 +469,7 @@ public class DefaultBuildContextTest
         input.createNewFile();
         File output = new File( outputDirectory, "output.class" );
 
-        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+        PathSet paths = new PathSet( inputDirectory );
 
         BuildContext ctx = newContext();
         try
@@ -504,7 +504,7 @@ public class DefaultBuildContextTest
         input.createNewFile();
         File output = new File( outputDirectory, "output.class" );
 
-        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+        PathSet paths = new PathSet( inputDirectory );
 
         BuildContext ctx = newContext();
         try
@@ -539,7 +539,7 @@ public class DefaultBuildContextTest
         input.createNewFile();
         File output = new File( outputDirectory, "output.class" );
 
-        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+        PathSet paths = new PathSet( inputDirectory );
 
         BuildContext ctx = newContext();
         try
@@ -569,14 +569,14 @@ public class DefaultBuildContextTest
     }
 
     @Test
-    public void testGetInputs_IncrementalBuildIncludesUnmodifiedFilesWhoseOutputIsMissing()
+    public void testGetInputs_IncrementalBuildIncludesUnmodifiedFilesWhoseOutputHasBeenDeleted()
         throws Exception
     {
         File input = new File( inputDirectory, "input.java" );
         input.createNewFile();
         File output = new File( outputDirectory, "output.class" );
 
-        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+        PathSet paths = new PathSet( inputDirectory );
 
         BuildContext ctx = newContext();
         try
@@ -599,6 +599,71 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input.java" );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+    }
+
+    @Test
+    public void testGetInputs_IncrementalBuildIncludesFilesWhoseOutputIsMissingDueToRenamingOfInput()
+        throws Exception
+    {
+        File input1 = new File( inputDirectory, "input1.java" );
+        File input2 = new File( inputDirectory, "dir/input2.java" );
+        input1.createNewFile();
+        long timestamp1 = input1.lastModified();
+        File output1 = new File( outputDirectory, "output1.class" );
+        File output2 = new File( outputDirectory, "dir/output2.class" );
+
+        PathSet paths = new PathSet( inputDirectory );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input1.java" );
+            output1.createNewFile();
+            ctx.addOutputs( input1, output1 );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        assertEquals( output1.getAbsolutePath(), true, output1.isFile() );
+        input1.delete();
+        assertEquals( input1.getAbsolutePath(), false, input1.exists() );
+        Utils.writeBytes( input2 );
+        input2.setLastModified( timestamp1 );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "dir" + File.separator + "input2.java" );
+            Utils.writeBytes( output2 );
+            ctx.addOutputs( input2, output2 );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        assertEquals( output1.getAbsolutePath(), false, output1.exists() );
+        assertEquals( output2.getAbsolutePath(), true, output2.isFile() );
+
+        input2.delete();
+        assertEquals( input2.getAbsolutePath(), false, input2.exists() );
+        input1.createNewFile();
+        input1.setLastModified( timestamp1 );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input1.java" );
         }
         finally
         {

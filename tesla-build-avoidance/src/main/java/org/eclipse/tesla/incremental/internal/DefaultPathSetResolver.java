@@ -132,7 +132,7 @@ public class DefaultPathSetResolver
                 }
             }
         }
-        return false;
+        return outs == null || outs.isEmpty();
     }
 
 }

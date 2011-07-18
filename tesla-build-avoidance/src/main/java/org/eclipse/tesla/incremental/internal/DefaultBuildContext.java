@@ -168,6 +168,11 @@ class DefaultBuildContext
 
     public void addOutputs( File input, File... outputs )
     {
+        if ( outputs == null || outputs.length <= 0 )
+        {
+            return;
+        }
+
         Collection<File> resolvedOutputs = new ArrayList<File>( outputs.length );
         for ( File output : outputs )
         {
@@ -180,6 +185,11 @@ class DefaultBuildContext
 
     public void addOutputs( File input, String... outputs )
     {
+        if ( outputs == null || outputs.length <= 0 )
+        {
+            return;
+        }
+
         Collection<File> resolvedOutputs = new ArrayList<File>( outputs.length );
         for ( String output : outputs )
         {
@@ -227,6 +237,7 @@ class DefaultBuildContext
     {
         for ( File deletedInput : deletedInputs )
         {
+            inputStates.remove( deletedInput );
             Collection<File> outputs = this.outputs.get( deletedInput );
             deleteSuperfluousOutputs( deletedInput, outputs );
         }
@@ -266,8 +277,14 @@ class DefaultBuildContext
             if ( inputs.isEmpty() )
             {
                 this.inputs.remove( output );
-                log.debug( "Deleting stale output file " + output );
-                output.delete();
+                if ( !output.delete() && output.exists() )
+                {
+                    log.debug( "Failed to delete stale output file " + output );
+                }
+                else
+                {
+                    log.debug( "Deleted stale output file " + output );
+                }
             }
         }
     }
