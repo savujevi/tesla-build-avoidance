@@ -29,7 +29,6 @@ import java.util.TreeSet;
 
 import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.PathSet;
-import org.slf4j.Logger;
 
 class DefaultBuildContext
     implements BuildContext
