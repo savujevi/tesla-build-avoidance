@@ -1,10 +1,20 @@
 package org.eclipse.tesla.incremental;
 
+/*******************************************************************************
+ * Copyright (c) 2011 Sonatype, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ *   http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
+
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 public class PathSet
     implements Serializable
@@ -33,11 +43,67 @@ public class PathSet
 
     private Kind kind;
 
+    public static PathSet fromFile( File file )
+    {
+        if ( file == null )
+        {
+            return null;
+        }
+
+        file = file.getAbsoluteFile();
+        File basedir = file.getParentFile();
+        String include = file.getName();
+
+        return new PathSet( basedir ).addIncludes( include ).setDefaultExcludes( false );
+    }
+
+    public static List<PathSet> fromFiles( File basedir, String... files )
+    {
+        if ( basedir == null )
+        {
+            basedir = new File( "" ).getAbsoluteFile();
+        }
+
+        List<PathSet> pathSets = new ArrayList<PathSet>();
+        PathSet basePathSet = null;
+
+        if ( files != null )
+        {
+            for ( String file : files )
+            {
+                if ( file == null )
+                {
+                    continue;
+                }
+                File f = new File( file );
+                if ( f.isAbsolute() )
+                {
+                    pathSets.add( fromFile( f ) );
+                }
+                else if ( f.getPath().startsWith( File.separator ) )
+                {
+                    pathSets.add( fromFile( f.getAbsoluteFile() ) );
+                }
+                else
+                {
+                    if ( basePathSet == null )
+                    {
+                        basePathSet = new PathSet( basedir ).setDefaultExcludes( false );
+                        pathSets.add( basePathSet );
+                    }
+                    basePathSet.addIncludes( file );
+                }
+            }
+        }
+
+        return pathSets;
+    }
+
     public PathSet( File basedir )
     {
         if ( basedir == null )
         {
-            throw new IllegalStateException( "base directory not specified" );
+            throw new IllegalStateException( "base directory for path set not specified" );
         }
         this.basedir = basedir.getAbsoluteFile();
         this.kind = Kind.FILES_ONLY;
@@ -45,26 +111,16 @@ public class PathSet
 
     public PathSet( File basedir, String[] includes, String[] excludes )
     {
-        if ( basedir == null )
-        {
-            throw new IllegalStateException( "base directory not specified" );
-        }
-        this.basedir = basedir.getAbsoluteFile();
+        this( basedir );
         addIncludes( includes );
         addExcludes( excludes );
-        this.kind = Kind.FILES_ONLY;
     }
 
     public PathSet( File basedir, Collection<String> includes, Collection<String> excludes )
     {
-        if ( basedir == null )
-        {
-            throw new IllegalStateException( "base directory not specified" );
-        }
-        this.basedir = basedir.getAbsoluteFile();
+        this( basedir );
         addIncludes( includes );
         addExcludes( excludes );
-        this.kind = Kind.FILES_ONLY;
     }
 
     public File getBasedir()
@@ -134,7 +190,7 @@ public class PathSet
             {
                 if ( exclude != null )
                 {
-                    this.includes.add( normalizePattern( exclude ) );
+                    this.excludes.add( normalizePattern( exclude ) );
                 }
             }
         }
@@ -176,7 +232,7 @@ public class PathSet
     {
         if ( kind == null )
         {
-            throw new IllegalArgumentException( "path set kind not specified" );
+            throw new IllegalArgumentException( "kind of path set not specified" );
         }
         this.kind = kind;
         return this;
