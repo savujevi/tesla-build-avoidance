@@ -214,8 +214,8 @@ public class PathSet
     @Override
     public String toString()
     {
-        return getBasedir() + ", includes = " + getIncludes() + ", excludes = " + getExcludes() + ", kind = "
-            + getKind();
+        return getBasedir() + ", includes = " + getIncludes() + ", excludes = " + getExcludes()
+            + ( isDefaultExcludes() ? "*" : "" ) + ", kind = " + getKind();
     }
 
 }
