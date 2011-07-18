@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ ~ Copyright (c) 2011 Sonatype, Inc. All rights reserved.
+-->
+
+<project>
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.eclipse.tesla.incremental.its</groupId>
+  <artifactId>test</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>@project.groupId@</groupId>
+        <artifactId>@project.artifactId@</artifactId>
+        <version>@project.version@</version>
+        <executions>
+          <execution>
+            <id>test</id>
+            <goals>
+              <goal>incremental</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

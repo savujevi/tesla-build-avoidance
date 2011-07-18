@@ -9,8 +9,9 @@ package org.eclipse.tesla.incremental.internal;
  *******************************************************************************/
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import javax.inject.Named;
@@ -26,30 +27,32 @@ public class DefaultPathSetResolver
 
     public Collection<Path> resolve( PathSet paths, Map<File, FileState> states, Map<File, Collection<File>> outputs )
     {
-        Map<File, Path> result = new HashMap<File, Path>();
+        Collection<Path> dirtyPaths = new ArrayList<Path>();
+        Collection<File> selectedFiles = new HashSet<File>();
 
         Selector selector = new Selector( paths.getIncludes(), paths.getExcludes(), paths.isDefaultExcludes() );
 
         File basedir = paths.getBasedir();
         if ( !PathSet.Kind.FILES_ONLY.equals( paths.getKind() ) && selector.isSelected( "" ) )
         {
-            result.put( basedir, new Path( "", Path.State.PRESENT ) );
+            dirtyPaths.add( new Path( "", Path.State.PRESENT ) );
+            selectedFiles.add( basedir );
         }
-        scan( result, basedir, "", paths.getKind(), selector, states, outputs );
+        scan( selectedFiles, dirtyPaths, basedir, "", paths.getKind(), selector, states, outputs );
 
         if ( states != null )
         {
             for ( File file : states.keySet() )
             {
                 String pathname = relativize( file, basedir );
-                if ( pathname != null && selector.isSelected( pathname ) && !result.containsKey( file ) )
+                if ( pathname != null && selector.isSelected( pathname ) && !selectedFiles.contains( file ) )
                 {
-                    result.put( file, new Path( pathname, Path.State.DELETED ) );
+                    dirtyPaths.add( new Path( pathname, Path.State.DELETED ) );
                 }
             }
         }
 
-        return result.values();
+        return dirtyPaths;
     }
 
     String relativize( File file, File basedir )
@@ -75,8 +78,9 @@ public class DefaultPathSetResolver
         return pathname;
     }
 
-    private void scan( Map<File, Path> paths, File dir, String pathPrefix, PathSet.Kind kind, Selector selector,
-                       Map<File, FileState> states, Map<File, Collection<File>> outputs )
+    private void scan( Collection<File> selectedFiles, Collection<Path> paths, File dir, String pathPrefix,
+                       PathSet.Kind kind, Selector selector, Map<File, FileState> states,
+                       Map<File, Collection<File>> outputs )
     {
         String[] files = dir.list();
         if ( files == null )
@@ -91,22 +95,24 @@ public class DefaultPathSetResolver
             {
                 if ( !PathSet.Kind.FILES_ONLY.equals( kind ) && selector.isSelected( path ) )
                 {
-                    paths.put( file, new Path( path, Path.State.PRESENT ) );
+                    selectedFiles.add( file );
+                    paths.add( new Path( path, Path.State.PRESENT ) );
                 }
                 if ( selector.couldHoldIncluded( path ) )
                 {
-                    scan( paths, file, path + File.separator, kind, selector, states, outputs );
+                    scan( selectedFiles, paths, file, path + File.separator, kind, selector, states, outputs );
                 }
             }
             else if ( file.isFile() )
             {
                 if ( !PathSet.Kind.DIRECTORIES_ONLY.equals( kind ) && selector.isSelected( path ) )
                 {
+                    selectedFiles.add( file );
                     FileState previousState = ( states != null ) ? states.get( file ) : null;
                     if ( previousState == null || previousState.getTimestamp() != file.lastModified()
                         || previousState.getSize() != file.length() || isOutputMissing( file, outputs ) )
                     {
-                        paths.put( file, new Path( path, Path.State.PRESENT ) );
+                        paths.add( new Path( path, Path.State.PRESENT ) );
                     }
                 }
             }

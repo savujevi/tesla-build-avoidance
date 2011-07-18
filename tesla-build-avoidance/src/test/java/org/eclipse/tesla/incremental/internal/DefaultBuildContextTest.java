@@ -205,6 +205,33 @@ public class DefaultBuildContextTest
     }
 
     @Test
+    public void testSetConfiguration_ConsidersPathSet()
+    {
+        PathSet paths1 = new PathSet( new File( "" ) );
+        PathSet paths2 = new PathSet( new File( "" ) ).addIncludes( "*.java" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            assertEquals( true, ctx.setConfiguration( paths1, new byte[] { 1 } ) );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        ctx = newContext();
+        try
+        {
+            assertEquals( true, ctx.setConfiguration( paths2, new byte[] { 1 } ) );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+    }
+
+    @Test
     public void testNewOutputStream_ResolvesPathnameRelativeToOutputDirectory()
         throws Exception
     {
@@ -294,6 +321,45 @@ public class DefaultBuildContextTest
 
         assertEquals( output1.getAbsolutePath(), false, output1.exists() );
         assertEquals( output2.getAbsolutePath(), false, output2.exists() );
+    }
+
+    @Test
+    public void testFinish_KeepsOutputsWhoseInputsExistAndHaveBeenExcludedDuringIncrementalBuild()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input.java" );
+        input.createNewFile();
+        File output = new File( outputDirectory, "output.class" );
+
+        PathSet paths = new PathSet( inputDirectory ).addIncludes( "**" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.java" );
+            output.createNewFile();
+            ctx.addOutputs( input, output );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        assertEquals( output.getAbsolutePath(), true, output.isFile() );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        assertEquals( output.getAbsolutePath(), true, output.isFile() );
     }
 
     @Test

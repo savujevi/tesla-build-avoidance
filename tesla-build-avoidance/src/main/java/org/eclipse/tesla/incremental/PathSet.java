@@ -43,6 +43,30 @@ public class PathSet
         this.kind = Kind.FILES_ONLY;
     }
 
+    public PathSet( File basedir, String[] includes, String[] excludes )
+    {
+        if ( basedir == null )
+        {
+            throw new IllegalStateException( "base directory not specified" );
+        }
+        this.basedir = basedir.getAbsoluteFile();
+        addIncludes( includes );
+        addExcludes( excludes );
+        this.kind = Kind.FILES_ONLY;
+    }
+
+    public PathSet( File basedir, Collection<String> includes, Collection<String> excludes )
+    {
+        if ( basedir == null )
+        {
+            throw new IllegalStateException( "base directory not specified" );
+        }
+        this.basedir = basedir.getAbsoluteFile();
+        addIncludes( includes );
+        addExcludes( excludes );
+        this.kind = Kind.FILES_ONLY;
+    }
+
     public File getBasedir()
     {
         return basedir;
@@ -171,7 +195,8 @@ public class PathSet
         }
         PathSet that = (PathSet) obj;
         return this.basedir.equals( that.basedir ) && this.kind.equals( that.kind )
-            && this.includes.equals( that.includes ) && this.excludes.equals( that.excludes );
+            && this.includes.equals( that.includes ) && this.excludes.equals( that.excludes )
+            && this.defaultExcludes == that.defaultExcludes;
     }
 
     @Override
@@ -182,6 +207,7 @@ public class PathSet
         hash = hash * 31 + kind.hashCode();
         hash = hash * 31 + includes.hashCode();
         hash = hash * 31 + excludes.hashCode();
+        hash = hash * 31 + ( defaultExcludes ? 1 : 0 );
         return hash;
     }
 

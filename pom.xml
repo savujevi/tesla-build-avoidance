@@ -18,11 +18,16 @@
   </parent>
 
   <groupId>org.sonatype.tesla</groupId>
-  <artifactId>build-avoidance</artifactId>
+  <artifactId>build-avoidance-aggregator</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
-  <name>Tesla Build Avoidance</name>
+  <modules>
+    <module>tesla-build-avoidance</module>
+    <module>tesla-demo-maven-plugin</module>
+  </modules>
+
+  <name>Tesla Build Avoidance Aggregator</name>
   <description>
     Incremental output generator tooling.
   </description>
@@ -42,187 +47,29 @@
   </licenses>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <forgeReleaseUrl>https://repository.sonatype.org/service/local/staging/deploy/maven2</forgeReleaseUrl>
-    <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
   </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
-      <version>1</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-component-annotations</artifactId>
-      <version>1.5.5</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-container-default</artifactId>
-      <version>1.0-alpha-9</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>classworlds</groupId>
-          <artifactId>classworlds</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.codehaus.plexus</groupId>
-          <artifactId>plexus-utils</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.8.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.6.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>0.9.29</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.sonatype.sisu</groupId>
-      <artifactId>sisu-inject-bean</artifactId>
-      <version>2.2.3</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
 
   <build>
     <pluginManagement>
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.2-beta-5</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-clean-plugin</artifactId>
-          <version>2.4.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.3.2</version>
-          <configuration>
-            <source>1.5</source>
-            <target>1.5</target>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.5</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-gpg-plugin</artifactId>
-          <version>1.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-install-plugin</artifactId>
-          <version>2.3.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.5</version>
-          <configuration>
-            <links>
-              <link>http://java.sun.com/javase/6/docs/api/</link>
-            </links>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
           <version>2.0</version>
         </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>2.4.3</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.9</version>
-          <configuration>
-            <argLine>-Xmx128m</argLine>
-            <redirectTestOutputToFile>${surefire.redirectTestOutputToFile}</redirectTestOutputToFile>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>animal-sniffer-maven-plugin</artifactId>
-          <version>1.6</version>
-          <configuration>
-            <signature>
-              <groupId>org.codehaus.mojo.signature</groupId>
-              <artifactId>java15</artifactId>
-              <version>1.0</version>
-            </signature>
-          </configuration>
-          <executions>
-            <execution>
-              <id>check-java-1.5-compat</id>
-              <phase>process-classes</phase>
-              <goals>
-                <goal>check</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>clirr-maven-plugin</artifactId>
-          <version>2.3</version>
-          <executions>
-            <execution>
-              <id>check-api-compat</id>
-              <phase>verify</phase>
-              <goals>
-                <goal>check-no-fork</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.plexus</groupId>
-          <artifactId>plexus-component-metadata</artifactId>
-          <version>1.5.5</version>
-          <executions>
-            <execution>
-              <id>generate-components-xml</id>
-              <goals>
-                <goal>generate-metadata</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
   <profiles>
@@ -254,26 +101,6 @@
                   </descriptorRefs>
                   <tarLongFileFormat>gnu</tarLongFileFormat>
                 </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>snapshot-sources</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <version>2.1.2</version>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar-no-fork</goal>
-                </goals>
               </execution>
             </executions>
           </plugin>

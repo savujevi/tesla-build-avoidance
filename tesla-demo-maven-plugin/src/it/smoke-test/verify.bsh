@@ -1,0 +1,18 @@
+import java.io.*;
+
+String[] expected =
+{
+    "greetings.txt",
+};
+
+File outDir = new File( basedir, "target/tesla" );
+
+for ( String path : expected )
+{
+    File file = new File( outDir, path );
+    System.out.println( "Checking existence of " + file );
+    if ( !file.isFile() )
+    {
+        throw new FileNotFoundException( file.getAbsolutePath() );
+    }
+}

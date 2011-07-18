@@ -204,23 +204,45 @@ class DefaultDigester
         return digest();
     }
 
-    public Digester files( Collection<? extends File> files )
+    public Digester files( Collection<?> files )
     {
         if ( files instanceof Set )
         {
             byte[] tmp = new byte[digest.length];
-            for ( File file : files )
+            for ( Object file : files )
             {
-                update( file );
+                if ( file instanceof File )
+                {
+                    update( (File) file );
+                }
+                else if ( file instanceof String )
+                {
+                    update( new File( (String) file ) );
+                }
+                else
+                {
+                    update( (File) null );
+                }
                 xor( tmp, digester.digest() );
             }
             digester.update( tmp, 0, digest.length );
         }
         else if ( files != null )
         {
-            for ( File file : files )
+            for ( Object file : files )
             {
-                update( file );
+                if ( file instanceof File )
+                {
+                    update( (File) file );
+                }
+                else if ( file instanceof String )
+                {
+                    update( new File( (String) file ) );
+                }
+                else
+                {
+                    update( (File) null );
+                }
             }
         }
         return digest();

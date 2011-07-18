@@ -25,7 +25,7 @@ public interface Digester
 
     Digester files( File... files );
 
-    Digester files( Collection<? extends File> files );
+    Digester files( Collection<?> files );
 
     Digester file( String file );
 
