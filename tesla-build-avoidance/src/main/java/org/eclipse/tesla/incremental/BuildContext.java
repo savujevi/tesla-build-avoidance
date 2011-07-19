@@ -16,6 +16,10 @@ import java.util.Collection;
 public interface BuildContext
 {
 
+    public static final int SEVERITY_WARNING = 1;
+
+    public static final int SEVERITY_ERROR = 2;
+
     File getOutputDirectory();
 
     // record current plugin config for fileset, signal if changed since last run
@@ -33,10 +37,11 @@ public interface BuildContext
 
     void addOutputs( File input, String... outputs );
 
+    void addMessage( File input, int line, int column, String message, int severity, Throwable cause );
+
+    void clearMessages( File input );
+
     // delete obsolete outputs and save context to disk, log any IO error as warning
     void finish();
-
-    // really have addMessage() here? not sure eventing/logging and IO should be coupled like that, might make usage
-    // simpler on the other hand
 
 }

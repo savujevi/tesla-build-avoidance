@@ -34,6 +34,8 @@ class DefaultBuildContext
     implements BuildContext
 {
 
+    private final MessageHandler messages;
+
     private final Logger log;
 
     private final File outputDirectory;
@@ -59,7 +61,8 @@ class DefaultBuildContext
 
     private transient Map<File, Collection<File>> addedOutputs;
 
-    public DefaultBuildContext( File outputDirectory, File contextDirectory, String pluginId, Logger log )
+    public DefaultBuildContext( File outputDirectory, File contextDirectory, String pluginId, MessageHandler messages,
+                                Logger log )
     {
         if ( outputDirectory == null )
         {
@@ -74,6 +77,7 @@ class DefaultBuildContext
             throw new IllegalArgumentException( "plugin id not specified" );
         }
 
+        this.messages = messages;
         this.log = log;
 
         this.outputDirectory = outputDirectory.getAbsoluteFile();
@@ -385,6 +389,16 @@ class DefaultBuildContext
         {
             log.debug( "Could not serialize incremental build state to " + outputFile, e );
         }
+    }
+
+    public void addMessage( File input, int line, int column, String message, int severity, Throwable cause )
+    {
+        messages.addMessage( input, line, column, message, severity, cause );
+    }
+
+    public void clearMessages( File input )
+    {
+        messages.clearMessages( input );
     }
 
 }

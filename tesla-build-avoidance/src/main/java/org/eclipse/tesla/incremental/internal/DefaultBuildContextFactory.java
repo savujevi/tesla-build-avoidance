@@ -28,20 +28,24 @@ public class DefaultBuildContextFactory
     @Requirement
     private Logger log = NullLogger.INSTANCE;
 
+    @Requirement
+    private MessageHandler messages;
+
     public DefaultBuildContextFactory()
     {
         // enables no-arg constructor
     }
 
     @Inject
-    public DefaultBuildContextFactory( Logger log )
+    public DefaultBuildContextFactory( MessageHandler messages, Logger log )
     {
-        this.log = log;
+        this.messages = ( messages != null ) ? messages : NullMessageHandler.INSTANCE;
+        this.log = ( log != null ) ? log : NullLogger.INSTANCE;
     }
 
     public BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId )
     {
-        return new DefaultBuildContext( outputDirectory, contextDirectory, pluginId, log );
+        return new DefaultBuildContext( outputDirectory, contextDirectory, pluginId, messages, log );
     }
 
     public Digester newDigester()
