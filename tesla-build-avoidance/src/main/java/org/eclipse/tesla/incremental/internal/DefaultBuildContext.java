@@ -283,11 +283,11 @@ class DefaultBuildContext
                 this.inputs.remove( output );
                 if ( !output.delete() && output.exists() )
                 {
-                    log.debug( "Failed to delete stale output file " + output );
+                    log.debug( "Failed to delete stale output " + output );
                 }
                 else
                 {
-                    log.debug( "Deleted stale output file " + output );
+                    log.debug( "Deleted stale output " + output );
                 }
             }
         }

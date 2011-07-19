@@ -330,6 +330,57 @@ public class DefaultBuildContextTest
     }
 
     @Test
+    public void testFinish_DeletesOutputDirsWhoseInputsHaveBeenDeleted()
+        throws Exception
+    {
+        File input1 = new File( inputDirectory, "input" );
+        File input2 = new File( inputDirectory, "input/subdir" );
+        input1.mkdirs();
+        input2.mkdirs();
+        File output1 = new File( outputDirectory, "output" );
+        File output2 = new File( outputDirectory, "output/subdir" );
+
+        PathSet paths = new PathSet( inputDirectory ).setKind( PathSet.Kind.FILES_AND_DIRECTORIES );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "", "input", "input" + File.separator + "subdir" );
+            output1.mkdirs();
+            output2.mkdirs();
+            ctx.addOutputs( input1, output1 );
+            ctx.addOutputs( input2, output2 );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        assertEquals( output1.getAbsolutePath(), true, output1.isDirectory() );
+        assertEquals( output2.getAbsolutePath(), true, output2.isDirectory() );
+
+        input2.delete();
+        input1.delete();
+        assertEquals( input1.getAbsolutePath(), false, input1.exists() );
+        assertEquals( input2.getAbsolutePath(), false, input2.exists() );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "" );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        assertEquals( output1.getAbsolutePath(), false, output1.exists() );
+        assertEquals( output2.getAbsolutePath(), false, output2.exists() );
+    }
+
+    @Test
     public void testFinish_KeepsOutputsWhoseInputsExistAndHaveBeenExcludedDuringIncrementalBuild()
         throws Exception
     {
