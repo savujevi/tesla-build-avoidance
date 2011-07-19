@@ -513,21 +513,22 @@ public class DefaultBuildContextTest
     }
 
     @Test
-    public void testGetInputs_IncrementalBuildExcludesUnmodifiedFiles()
+    public void testGetInputs_IncrementalBuildExcludesUnmodifiedFilesAndDirectories()
         throws Exception
     {
         File input = new File( inputDirectory, "input.java" );
         input.createNewFile();
         File output = new File( outputDirectory, "output.class" );
 
-        PathSet paths = new PathSet( inputDirectory );
+        PathSet paths = new PathSet( inputDirectory ).setKind( PathSet.Kind.FILES_AND_DIRECTORIES );
 
         BuildContext ctx = newContext();
         try
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
-            assertSetEquals( inputs, "input.java" );
+            assertSetEquals( inputs, "", "input.java" );
             output.createNewFile();
+            ctx.addOutputs( inputDirectory, outputDirectory );
             ctx.addOutputs( input, output );
         }
         finally
@@ -548,21 +549,22 @@ public class DefaultBuildContextTest
     }
 
     @Test
-    public void testGetInputs_FullBuildIncludesUnmodifiedFiles()
+    public void testGetInputs_FullBuildIncludesUnmodifiedFilesAndDirectories()
         throws Exception
     {
         File input = new File( inputDirectory, "input.java" );
         input.createNewFile();
         File output = new File( outputDirectory, "output.class" );
 
-        PathSet paths = new PathSet( inputDirectory );
+        PathSet paths = new PathSet( inputDirectory ).setKind( PathSet.Kind.FILES_AND_DIRECTORIES );
 
         BuildContext ctx = newContext();
         try
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
-            assertSetEquals( inputs, "input.java" );
+            assertSetEquals( inputs, "", "input.java" );
             output.createNewFile();
+            ctx.addOutputs( inputDirectory, outputDirectory );
             ctx.addOutputs( input, output );
         }
         finally
@@ -574,7 +576,7 @@ public class DefaultBuildContextTest
         try
         {
             Collection<String> inputs = ctx.getInputs( paths, true );
-            assertSetEquals( inputs, "input.java" );
+            assertSetEquals( inputs, "", "input.java" );
         }
         finally
         {

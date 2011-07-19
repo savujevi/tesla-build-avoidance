@@ -36,7 +36,10 @@ public class DefaultPathSetResolver
         File basedir = paths.getBasedir();
         if ( !PathSet.Kind.FILES_ONLY.equals( paths.getKind() ) && selector.isSelected( "" ) )
         {
-            dirtyPaths.add( new Path( "" ) );
+            if ( isProcessingRequired( basedir, states, outputs ) )
+            {
+                dirtyPaths.add( new Path( "" ) );
+            }
             selectedFiles.add( basedir );
         }
         scan( selectedFiles, dirtyPaths, basedir, "", paths.getKind(), selector, states, outputs );
@@ -97,7 +100,10 @@ public class DefaultPathSetResolver
                 if ( !PathSet.Kind.FILES_ONLY.equals( kind ) && selector.isSelected( path ) )
                 {
                     selectedFiles.add( file );
-                    paths.add( new Path( path ) );
+                    if ( isProcessingRequired( file, states, outputs ) )
+                    {
+                        paths.add( new Path( path ) );
+                    }
                 }
                 if ( selector.couldHoldIncluded( path ) )
                 {
@@ -109,15 +115,35 @@ public class DefaultPathSetResolver
                 if ( !PathSet.Kind.DIRECTORIES_ONLY.equals( kind ) && selector.isSelected( path ) )
                 {
                     selectedFiles.add( file );
-                    FileState previousState = ( states != null ) ? states.get( file ) : null;
-                    if ( previousState == null || previousState.getTimestamp() != file.lastModified()
-                        || previousState.getSize() != file.length() || isOutputMissing( file, outputs ) )
+                    if ( isProcessingRequired( file, states, outputs ) )
                     {
                         paths.add( new Path( path ) );
                     }
                 }
             }
         }
+    }
+
+    private boolean isProcessingRequired( File input, Map<File, FileState> states, Map<File, Collection<File>> outputs )
+    {
+        FileState previousState = ( states != null ) ? states.get( input ) : null;
+        if ( previousState == null )
+        {
+            return true;
+        }
+        if ( previousState.getTimestamp() != input.lastModified() )
+        {
+            return true;
+        }
+        if ( previousState.getSize() != input.length() )
+        {
+            return true;
+        }
+        if ( isOutputMissing( input, outputs ) )
+        {
+            return true;
+        }
+        return false;
     }
 
     private boolean isOutputMissing( File input, Map<File, Collection<File>> outputs )
