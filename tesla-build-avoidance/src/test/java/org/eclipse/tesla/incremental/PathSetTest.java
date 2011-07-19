@@ -199,6 +199,32 @@ public class PathSetTest
     }
 
     @Test
+    public void testIsIncludingFiles()
+    {
+        File basedir = new File( "" ).getAbsoluteFile();
+        PathSet ps = new PathSet( basedir );
+        ps.setKind( PathSet.Kind.FILES_ONLY );
+        assertEquals( true, ps.isIncludingFiles() );
+        ps.setKind( PathSet.Kind.FILES_AND_DIRECTORIES );
+        assertEquals( true, ps.isIncludingFiles() );
+        ps.setKind( PathSet.Kind.DIRECTORIES_ONLY );
+        assertEquals( false, ps.isIncludingFiles() );
+    }
+
+    @Test
+    public void testIsIncludingDirectories()
+    {
+        File basedir = new File( "" ).getAbsoluteFile();
+        PathSet ps = new PathSet( basedir );
+        ps.setKind( PathSet.Kind.FILES_ONLY );
+        assertEquals( false, ps.isIncludingDirectories() );
+        ps.setKind( PathSet.Kind.FILES_AND_DIRECTORIES );
+        assertEquals( true, ps.isIncludingDirectories() );
+        ps.setKind( PathSet.Kind.DIRECTORIES_ONLY );
+        assertEquals( true, ps.isIncludingDirectories() );
+    }
+
+    @Test
     public void testEquals()
     {
         File basedir = new File( "" ).getAbsoluteFile();

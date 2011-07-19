@@ -41,7 +41,7 @@ public class PathSet
 
     private boolean defaultExcludes = true;
 
-    private Kind kind;
+    private Kind kind = Kind.FILES_ONLY;
 
     public static PathSet fromFile( File file )
     {
@@ -226,6 +226,16 @@ public class PathSet
     public Kind getKind()
     {
         return kind;
+    }
+
+    public boolean isIncludingDirectories()
+    {
+        return !PathSet.Kind.FILES_ONLY.equals( getKind() );
+    }
+
+    public boolean isIncludingFiles()
+    {
+        return !PathSet.Kind.DIRECTORIES_ONLY.equals( getKind() );
     }
 
     public PathSet setKind( Kind kind )
