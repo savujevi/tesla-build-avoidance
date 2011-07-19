@@ -9,9 +9,8 @@ package org.eclipse.tesla.incremental.internal;
  *******************************************************************************/
 
 /**
- * A logger that disables any logging.
  */
-public class NullLogger
+class NullLogger
     implements Logger
 {
 

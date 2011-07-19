@@ -10,28 +10,14 @@ package org.eclipse.tesla.incremental.internal;
 
 import java.io.File;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.eclipse.tesla.incremental.BuildContext;
 
-@Named
-@Component( role = MessageHandler.class )
-public class DefaultMessageHandler
+class DefaultMessageHandler
     implements MessageHandler
 {
 
-    @Requirement
-    private Logger log = NullLogger.INSTANCE;
+    private final Logger log;
 
-    public DefaultMessageHandler()
-    {
-        // enables no-arg constructor
-    }
-
-    @Inject
     public DefaultMessageHandler( Logger log )
     {
         this.log = ( log != null ) ? log : NullLogger.INSTANCE;
