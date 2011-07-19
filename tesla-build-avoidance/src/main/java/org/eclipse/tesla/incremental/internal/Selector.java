@@ -66,7 +66,10 @@ class Selector
 
     private String[] excludes;
 
-    public Selector( Collection<String> includes, Collection<String> excludes, boolean defaultExcludes )
+    private boolean caseSensitive;
+
+    public Selector( Collection<String> includes, Collection<String> excludes, boolean defaultExcludes,
+                     boolean caseSensitive )
     {
         this.includes = includes.toArray( new String[includes.size()] );
         this.excludes =
@@ -90,12 +93,12 @@ class Selector
         return true;
     }
 
-    private static boolean isMatched( String pathname, String[] patterns )
+    private boolean isMatched( String pathname, String[] patterns )
     {
         for ( int i = patterns.length - 1; i >= 0; i-- )
         {
             String pattern = patterns[i];
-            if ( SelectorUtils.matchPath( pattern, pathname ) )
+            if ( SelectorUtils.matchPath( pattern, pathname, caseSensitive ) )
             {
                 return true;
             }
@@ -107,7 +110,7 @@ class Selector
     {
         for ( int i = 0; i < includes.length; i++ )
         {
-            if ( SelectorUtils.matchPatternStart( includes[i], pathname ) )
+            if ( SelectorUtils.matchPatternStart( includes[i], pathname, caseSensitive ) )
             {
                 return true;
             }

@@ -30,7 +30,8 @@ public class DefaultPathSetResolver
         Collection<Path> dirtyPaths = new ArrayList<Path>();
         Collection<File> selectedFiles = new HashSet<File>();
 
-        Selector selector = new Selector( paths.getIncludes(), paths.getExcludes(), paths.isDefaultExcludes() );
+        Selector selector =
+            new Selector( paths.getIncludes(), paths.getExcludes(), paths.isDefaultExcludes(), paths.isCaseSensitive() );
 
         File basedir = paths.getBasedir();
         if ( !PathSet.Kind.FILES_ONLY.equals( paths.getKind() ) && selector.isSelected( "" ) )

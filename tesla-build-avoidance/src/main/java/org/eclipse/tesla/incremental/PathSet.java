@@ -41,6 +41,8 @@ public class PathSet
 
     private boolean defaultExcludes = true;
 
+    private boolean caseSensitive = true;
+
     private Kind kind = Kind.FILES_ONLY;
 
     public static PathSet fromFile( File file )
@@ -223,6 +225,17 @@ public class PathSet
         return this;
     }
 
+    public boolean isCaseSensitive()
+    {
+        return caseSensitive;
+    }
+
+    public PathSet setCaseSensitive( boolean caseSensitive )
+    {
+        this.caseSensitive = caseSensitive;
+        return this;
+    }
+
     public Kind getKind()
     {
         return kind;
@@ -262,7 +275,7 @@ public class PathSet
         PathSet that = (PathSet) obj;
         return this.basedir.equals( that.basedir ) && this.kind.equals( that.kind )
             && this.includes.equals( that.includes ) && this.excludes.equals( that.excludes )
-            && this.defaultExcludes == that.defaultExcludes;
+            && this.defaultExcludes == that.defaultExcludes && this.caseSensitive == that.caseSensitive;
     }
 
     @Override
@@ -274,6 +287,7 @@ public class PathSet
         hash = hash * 31 + includes.hashCode();
         hash = hash * 31 + excludes.hashCode();
         hash = hash * 31 + ( defaultExcludes ? 1 : 0 );
+        hash = hash * 31 + ( caseSensitive ? 1 : 0 );
         return hash;
     }
 
@@ -281,7 +295,7 @@ public class PathSet
     public String toString()
     {
         return getBasedir() + ", includes = " + getIncludes() + ", excludes = " + getExcludes()
-            + ( isDefaultExcludes() ? "*" : "" ) + ", kind = " + getKind();
+            + ( isDefaultExcludes() ? "*" : "" ) + ", kind = " + getKind() + ( isCaseSensitive() ? "*" : "" );
     }
 
 }
