@@ -613,7 +613,6 @@ public class DefaultBuildContextTest
         File input1 = new File( inputDirectory, "input1.java" );
         File input2 = new File( inputDirectory, "dir/input2.java" );
         input1.createNewFile();
-        long timestamp1 = input1.lastModified();
         File output1 = new File( outputDirectory, "output1.class" );
         File output2 = new File( outputDirectory, "dir/output2.class" );
 
@@ -633,10 +632,8 @@ public class DefaultBuildContextTest
         }
 
         assertEquals( output1.getAbsolutePath(), true, output1.isFile() );
-        input1.delete();
+        Utils.move( input1, input2 );
         assertEquals( input1.getAbsolutePath(), false, input1.exists() );
-        Utils.writeBytes( input2 );
-        input2.setLastModified( timestamp1 );
 
         ctx = newContext();
         try
@@ -654,10 +651,8 @@ public class DefaultBuildContextTest
         assertEquals( output1.getAbsolutePath(), false, output1.exists() );
         assertEquals( output2.getAbsolutePath(), true, output2.isFile() );
 
-        input2.delete();
+        Utils.move( input2, input1 );
         assertEquals( input2.getAbsolutePath(), false, input2.exists() );
-        input1.createNewFile();
-        input1.setLastModified( timestamp1 );
 
         ctx = newContext();
         try

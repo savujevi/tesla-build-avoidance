@@ -52,6 +52,20 @@ public class Utils
         }
     }
 
+    public static void move( File src, File dst )
+        throws IOException
+    {
+        long timestamp = src.lastModified();
+        dst.getAbsoluteFile().getParentFile().mkdirs();
+        if ( !src.renameTo( dst ) )
+        {
+            byte[] data = readBytes( src );
+            writeBytes( dst, data );
+            src.delete();
+        }
+        dst.setLastModified( timestamp );
+    }
+
     public static void delete( File file )
         throws IOException
     {
