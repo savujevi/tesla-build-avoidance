@@ -35,7 +35,7 @@ public class DefaultPathSetResolver
         File basedir = paths.getBasedir();
         if ( !PathSet.Kind.FILES_ONLY.equals( paths.getKind() ) && selector.isSelected( "" ) )
         {
-            dirtyPaths.add( new Path( "", Path.State.PRESENT ) );
+            dirtyPaths.add( new Path( "" ) );
             selectedFiles.add( basedir );
         }
         scan( selectedFiles, dirtyPaths, basedir, "", paths.getKind(), selector, states, outputs );
@@ -47,7 +47,7 @@ public class DefaultPathSetResolver
                 String pathname = relativize( file, basedir );
                 if ( pathname != null && selector.isSelected( pathname ) && !selectedFiles.contains( file ) )
                 {
-                    dirtyPaths.add( new Path( pathname, Path.State.DELETED ) );
+                    dirtyPaths.add( new Path( pathname, true ) );
                 }
             }
         }
@@ -96,7 +96,7 @@ public class DefaultPathSetResolver
                 if ( !PathSet.Kind.FILES_ONLY.equals( kind ) && selector.isSelected( path ) )
                 {
                     selectedFiles.add( file );
-                    paths.add( new Path( path, Path.State.PRESENT ) );
+                    paths.add( new Path( path ) );
                 }
                 if ( selector.couldHoldIncluded( path ) )
                 {
@@ -112,7 +112,7 @@ public class DefaultPathSetResolver
                     if ( previousState == null || previousState.getTimestamp() != file.lastModified()
                         || previousState.getSize() != file.length() || isOutputMissing( file, outputs ) )
                     {
-                        paths.add( new Path( path, Path.State.PRESENT ) );
+                        paths.add( new Path( path ) );
                     }
                 }
             }

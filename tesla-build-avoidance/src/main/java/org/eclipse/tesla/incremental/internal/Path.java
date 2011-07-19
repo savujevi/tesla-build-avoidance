@@ -15,12 +15,21 @@ public class Path
 
     private final String path;
 
-    private final State state;
+    private final boolean deleted;
 
-    public Path( String path, State state )
+    public Path( String path )
     {
+        this( path, false );
+    }
+
+    public Path( String path, boolean deleted )
+    {
+        if ( path == null )
+        {
+            throw new IllegalArgumentException( "path not specified" );
+        }
         this.path = path;
-        this.state = state;
+        this.deleted = deleted;
     }
 
     public String getPath()
@@ -28,18 +37,39 @@ public class Path
         return path;
     }
 
-    public State getState()
+    public boolean isDeleted()
     {
-        return state;
+        return deleted;
     }
 
-    public enum State
+    @Override
+    public boolean equals( Object obj )
     {
+        if ( this == obj )
+        {
+            return true;
+        }
+        else if ( obj == null || !obj.getClass().equals( getClass() ) )
+        {
+            return false;
+        }
+        Path that = (Path) obj;
+        return this.deleted == that.deleted && this.path.equals( that.path );
+    }
 
-        PRESENT,
+    @Override
+    public int hashCode()
+    {
+        int hash = 17;
+        hash = hash * 31 + path.hashCode();
+        hash = hash * 31 + ( deleted ? 1 : 0 );
+        return hash;
+    }
 
-        DELETED
-
+    @Override
+    public String toString()
+    {
+        return getPath() + ( isDeleted() ? " (-)" : " (+)" );
     }
 
 }

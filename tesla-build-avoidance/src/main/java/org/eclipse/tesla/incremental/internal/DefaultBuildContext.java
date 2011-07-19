@@ -136,7 +136,7 @@ class DefaultBuildContext
         Collection<String> inputs = new ArrayList<String>();
         for ( Path path : pathSetResolver.resolve( paths, fullBuild ? null : inputStates, outputs ) )
         {
-            if ( Path.State.DELETED.equals( path.getState() ) )
+            if ( path.isDeleted() )
             {
                 deletedInputs.add( new File( paths.getBasedir(), path.getPath() ) );
             }
