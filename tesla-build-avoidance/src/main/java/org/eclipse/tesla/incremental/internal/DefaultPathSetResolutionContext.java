@@ -75,7 +75,7 @@ class DefaultPathSetResolutionContext
 
     public boolean isAncestorOfPotentiallySelected( String pathname )
     {
-        return selector.couldHoldIncluded( pathname );
+        return selector.isAncestorOfPotentiallySelected( pathname );
     }
 
     public Collection<String> getDeletedInputPaths( Collection<File> existingInputs )

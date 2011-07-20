@@ -12,16 +12,20 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
 import org.junit.Test;
 
 public class SelectorTest
 {
 
+    private static final Collection<String> EMPTY = Collections.emptySet();
+
     @Test
     public void testIsSelected_DefaultExcludes()
     {
-        Selector selector = new Selector( Arrays.asList( "**" ), Arrays.asList( "" ), true, true );
+        Selector selector = new Selector( Arrays.asList( "**" ), EMPTY, true, true );
         assertEquals( false, selector.isSelected( ".git" ) );
         assertEquals( false, selector.isSelected( "dir" + File.separator + ".svn" + File.separator + "entries" ) );
     }
@@ -29,7 +33,7 @@ public class SelectorTest
     @Test
     public void testIsSelected_NoDefaultExcludes()
     {
-        Selector selector = new Selector( Arrays.asList( "**" ), Arrays.asList( "" ), false, true );
+        Selector selector = new Selector( Arrays.asList( "**" ), EMPTY, false, true );
         assertEquals( true, selector.isSelected( ".git" ) );
         assertEquals( true, selector.isSelected( "dir" + File.separator + ".svn" + File.separator + "entries" ) );
     }
@@ -37,7 +41,7 @@ public class SelectorTest
     @Test
     public void testIsSelected_CaseSensitive()
     {
-        Selector selector = new Selector( Arrays.asList( "*.java" ), Arrays.asList( "" ), true, true );
+        Selector selector = new Selector( Arrays.asList( "*.java" ), EMPTY, false, true );
         assertEquals( true, selector.isSelected( "Test.java" ) );
         assertEquals( false, selector.isSelected( "Test.JAVA" ) );
     }
@@ -45,9 +49,17 @@ public class SelectorTest
     @Test
     public void testIsSelected_CaseInsensitive()
     {
-        Selector selector = new Selector( Arrays.asList( "*.java" ), Arrays.asList( "" ), true, false );
+        Selector selector = new Selector( Arrays.asList( "*.java" ), EMPTY, false, false );
         assertEquals( true, selector.isSelected( "Test.java" ) );
         assertEquals( true, selector.isSelected( "Test.JAVA" ) );
+    }
+
+    @Test
+    public void testIsAncestorOfPotentiallySelected()
+    {
+        Selector selector = new Selector( Arrays.asList( "**/*.java" ), Arrays.asList( "**/.svn/**" ), false, true );
+        assertEquals( true, selector.isAncestorOfPotentiallySelected( "dir" ) );
+        assertEquals( false, selector.isAncestorOfPotentiallySelected( ".svn" ) );
     }
 
 }

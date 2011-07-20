@@ -15,6 +15,8 @@ import java.util.LinkedHashSet;
 class Selector
 {
 
+    private static final String DEEP_TREE_SUFFIX = File.separator + "**";
+
     private static final String[] DEFAULT_EXCLUDES = {
 
         // Miscellaneous typical temporary files
@@ -149,7 +151,12 @@ class Selector
         return false;
     }
 
-    public boolean couldHoldIncluded( String pathname )
+    public boolean isAncestorOfPotentiallySelected( String pathname )
+    {
+        return !isEveryDescendantSurelyExcluded( pathname ) && isAnyDescendantPotentiallyIncluded( pathname );
+    }
+
+    private boolean isAnyDescendantPotentiallyIncluded( String pathname )
     {
         for ( int i = 0; i < includes.length; i++ )
         {
@@ -159,6 +166,21 @@ class Selector
             }
         }
         return includes.length <= 0;
+    }
+
+    private boolean isEveryDescendantSurelyExcluded( String pathname )
+    {
+        for ( int i = 0; i < excludes.length; i++ )
+        {
+            String exclude = excludes[i];
+            if ( exclude.endsWith( DEEP_TREE_SUFFIX )
+                && SelectorUtils.matchPath( exclude.substring( 0, exclude.length() - DEEP_TREE_SUFFIX.length() ),
+                                            pathname, caseSensitive ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
