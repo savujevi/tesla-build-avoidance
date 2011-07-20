@@ -157,7 +157,7 @@ class DefaultBuildContext
         }
         output = FileUtils.resolve( output, getOutputDirectory() );
         output.getParentFile().mkdirs();
-        return new FileOutputStream( output );
+        return new IncrementalFileOutputStream( output );
     }
 
     public OutputStream newOutputStream( String output )

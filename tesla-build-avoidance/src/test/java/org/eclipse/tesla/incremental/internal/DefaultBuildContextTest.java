@@ -284,6 +284,64 @@ public class DefaultBuildContextTest
     }
 
     @Test
+    public void testNewOutputStream_DoesNotModifyOutputFileUnlessContentActuallyChanged()
+        throws Exception
+    {
+        BuildContext ctx = newContext();
+        try
+        {
+            String filename = "test.txt";
+
+            OutputStream os = ctx.newOutputStream( filename );
+            os.write( "Hello".getBytes( "UTF-8" ) );
+            os.write( " World!".getBytes( "UTF-8" ) );
+            os.write( '\n' );
+            os.close();
+
+            File output = new File( outputDirectory, filename );
+            byte[] data = Utils.readBytes( output );
+            assertArrayEquals( "Hello World!\n".getBytes( "UTF-8" ), data );
+
+            long timestamp = System.currentTimeMillis() - 5 * 60 * 1000;
+            assertTrue( output.setLastModified( timestamp ) );
+            timestamp = output.lastModified();
+
+            os = ctx.newOutputStream( filename );
+            os.write( 'H' );
+            os.write( "ello World!\n".getBytes( "UTF-8" ) );
+            os.close();
+
+            assertEquals( timestamp, output.lastModified() );
+            data = Utils.readBytes( output );
+            assertArrayEquals( "Hello World!\n".getBytes( "UTF-8" ), data );
+
+            os = ctx.newOutputStream( filename );
+            os.write( 'h' );
+            os.write( "ello".getBytes( "UTF-8" ) );
+            os.close();
+
+            assertTrue( timestamp != output.lastModified() );
+            data = Utils.readBytes( output );
+            assertArrayEquals( "hello".getBytes( "UTF-8" ), data );
+
+            assertTrue( output.setLastModified( timestamp ) );
+            timestamp = output.lastModified();
+
+            os = ctx.newOutputStream( filename );
+            os.write( "Hello world!".getBytes( "UTF-8" ) );
+            os.close();
+
+            assertTrue( timestamp != output.lastModified() );
+            data = Utils.readBytes( output );
+            assertArrayEquals( "Hello world!".getBytes( "UTF-8" ), data );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+    }
+
+    @Test
     public void testFinish_DeletesOutputsWhoseInputsHaveBeenDeleted()
         throws Exception
     {
