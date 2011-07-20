@@ -49,9 +49,15 @@ public class DefaultBuildContextFactory
         return new DefaultMessageHandler( getLogger() );
     }
 
+    protected OutputListener getOutputListener()
+    {
+        return NullOutputListener.INSTANCE;
+    }
+
     public BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId )
     {
-        return new DefaultBuildContext( outputDirectory, contextDirectory, pluginId, getMessageHandler(), getLogger() );
+        return new DefaultBuildContext( outputDirectory, contextDirectory, pluginId, getMessageHandler(),
+                                        getOutputListener(), getLogger() );
     }
 
     public Digester newDigester()

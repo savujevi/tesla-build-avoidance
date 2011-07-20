@@ -21,17 +21,29 @@ class IncrementalFileOutputStream
     extends OutputStream
 {
 
+    private final DefaultBuildContext context;
+
+    private final File file;
+
     private final RandomAccessFile raf;
 
     private final byte[] buffer;
 
     private boolean modified;
 
-    public IncrementalFileOutputStream( File file )
+    public IncrementalFileOutputStream( File file, DefaultBuildContext context )
         throws FileNotFoundException
     {
+        this.file = file;
+        this.context = context;
         raf = new RandomAccessFile( file, "rw" );
         buffer = new byte[1024 * 16];
+    }
+
+    private void setModified()
+    {
+        modified = true;
+        context.addOutput( file, true );
     }
 
     @Override
@@ -41,8 +53,12 @@ class IncrementalFileOutputStream
         long pos = raf.getFilePointer();
         if ( pos < raf.length() )
         {
-            modified = true;
+            setModified();
             raf.setLength( pos );
+        }
+        if ( !modified )
+        {
+            context.addOutput( file, false );
         }
         raf.close();
     }
@@ -62,7 +78,7 @@ class IncrementalFileOutputStream
                 int read = raf.read( buffer, 0, Math.min( buffer.length, n ) );
                 if ( read < 0 || !arrayEquals( b, off + len - n, buffer, 0, read ) )
                 {
-                    modified = true;
+                    setModified();
                     if ( read > 0 )
                     {
                         raf.seek( raf.getFilePointer() - read );
@@ -103,7 +119,7 @@ class IncrementalFileOutputStream
             int i = raf.read();
             if ( i < 0 || i != ( b & 0xFF ) )
             {
-                modified = true;
+                setModified();
                 if ( i >= 0 )
                 {
                     raf.seek( raf.getFilePointer() - 1 );

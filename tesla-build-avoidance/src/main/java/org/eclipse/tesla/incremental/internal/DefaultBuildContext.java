@@ -34,7 +34,9 @@ class DefaultBuildContext
     implements BuildContext
 {
 
-    private final MessageHandler messages;
+    private final MessageHandler messageHandler;
+
+    private final OutputListener outputListener;
 
     private final Logger log;
 
@@ -61,8 +63,12 @@ class DefaultBuildContext
 
     private transient Map<File, Collection<File>> addedOutputs;
 
-    public DefaultBuildContext( File outputDirectory, File contextDirectory, String pluginId, MessageHandler messages,
-                                Logger log )
+    private transient Collection<File> modifiedOutputs;
+
+    private transient Collection<File> unmodifiedOutputs;
+
+    public DefaultBuildContext( File outputDirectory, File contextDirectory, String pluginId,
+                                MessageHandler messageHandler, OutputListener outputListener, Logger log )
     {
         if ( outputDirectory == null )
         {
@@ -77,7 +83,8 @@ class DefaultBuildContext
             throw new IllegalArgumentException( "plugin id not specified" );
         }
 
-        this.messages = ( messages != null ) ? messages : NullMessageHandler.INSTANCE;
+        this.messageHandler = ( messageHandler != null ) ? messageHandler : NullMessageHandler.INSTANCE;
+        this.outputListener = ( outputListener != null ) ? outputListener : NullOutputListener.INSTANCE;
         this.log = ( log != null ) ? log : NullLogger.INSTANCE;
 
         this.outputDirectory = outputDirectory.getAbsoluteFile();
@@ -92,6 +99,8 @@ class DefaultBuildContext
 
         this.deletedInputs = new TreeSet<File>( Collections.reverseOrder() );
         this.addedOutputs = new HashMap<File, Collection<File>>();
+        this.modifiedOutputs = new HashSet<File>();
+        this.unmodifiedOutputs = new HashSet<File>();
 
         load();
 
@@ -157,7 +166,7 @@ class DefaultBuildContext
         }
         output = FileUtils.resolve( output, getOutputDirectory() );
         output.getParentFile().mkdirs();
-        return new IncrementalFileOutputStream( output );
+        return new IncrementalFileOutputStream( output, this );
     }
 
     public OutputStream newOutputStream( String output )
@@ -228,13 +237,32 @@ class DefaultBuildContext
             }
             inputs.add( input );
         }
+
+        modifiedOutputs.addAll( outputs );
+    }
+
+    void addOutput( File output, boolean modified )
+    {
+        if ( modified )
+        {
+            modifiedOutputs.add( output );
+        }
+        else
+        {
+            unmodifiedOutputs.add( output );
+        }
     }
 
     public void finish()
     {
+        modifiedOutputs.retainAll( unmodifiedOutputs );
+
         deleteOutputsWhoseInputStillExistsButNoLongerGeneratesThem();
         deleteOutputsWhoseInputHasBeenDeleted();
+
         save();
+
+        outputListener.outputUpdated( modifiedOutputs );
     }
 
     private void deleteOutputsWhoseInputHasBeenDeleted()
@@ -393,12 +421,12 @@ class DefaultBuildContext
 
     public void addMessage( File input, int line, int column, String message, int severity, Throwable cause )
     {
-        messages.addMessage( input, line, column, message, severity, cause );
+        messageHandler.addMessage( input, line, column, message, severity, cause );
     }
 
     public void clearMessages( File input )
     {
-        messages.clearMessages( input );
+        messageHandler.clearMessages( input );
     }
 
 }
