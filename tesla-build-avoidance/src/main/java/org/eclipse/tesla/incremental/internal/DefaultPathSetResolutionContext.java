@@ -103,8 +103,30 @@ class DefaultPathSetResolutionContext
         if ( inputs != null && !inputs.isEmpty() )
         {
             File basedir = pathSet.getBasedir();
+            boolean includeFiles = pathSet.isIncludingFiles();
+            boolean includeDirs = pathSet.isIncludingDirectories();
+
             for ( File file : inputs )
             {
+                if ( file.isDirectory() )
+                {
+                    if ( !includeDirs )
+                    {
+                        continue;
+                    }
+                }
+                else if ( file.isFile() )
+                {
+                    if ( !includeFiles )
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    continue;
+                }
+
                 String pathname = FileUtils.relativize( file, basedir );
                 if ( pathname != null && selector.isSelected( pathname ) )
                 {
