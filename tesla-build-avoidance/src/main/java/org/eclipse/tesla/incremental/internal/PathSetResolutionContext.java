@@ -8,11 +8,28 @@ package org.eclipse.tesla.incremental.internal;
  *   http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
+import java.io.File;
 import java.util.Collection;
 
-public interface PathSetResolver
+import org.eclipse.tesla.incremental.PathSet;
+
+public interface PathSetResolutionContext
 {
 
-    Collection<Path> resolve( PathSetResolutionContext context );
+    File getOutputDirectory();
+
+    boolean isFullBuild();
+
+    PathSet getPathSet();
+
+    boolean isSelected( String pathname );
+
+    boolean isAncestorOfPotentiallySelected( String pathname );
+
+    Collection<String> getDeletedInputPaths( Collection<File> existingInputs );
+
+//    Collection<String> getInputPaths( File outputFile ); // eclipse
+
+    boolean isProcessingRequired( File input );
 
 }

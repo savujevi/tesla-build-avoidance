@@ -44,6 +44,11 @@ public class DefaultBuildContextFactory
         return log;
     }
 
+    protected PathSetResolver getPathSetResolver()
+    {
+        return new DefaultPathSetResolver();
+    }
+
     protected MessageHandler getMessageHandler()
     {
         return new DefaultMessageHandler( getLogger() );
@@ -56,8 +61,8 @@ public class DefaultBuildContextFactory
 
     public BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId )
     {
-        return new DefaultBuildContext( outputDirectory, contextDirectory, pluginId, getMessageHandler(),
-                                        getOutputListener(), getLogger() );
+        return new DefaultBuildContext( outputDirectory, contextDirectory, pluginId, getPathSetResolver(),
+                                        getMessageHandler(), getOutputListener(), getLogger() );
     }
 
     public Digester newDigester()

@@ -12,131 +12,79 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 
-import javax.inject.Named;
-
-import org.codehaus.plexus.component.annotations.Component;
-import org.eclipse.tesla.incremental.PathSet;
-
-@Named
-@Component( role = PathSetResolver.class )
-public class DefaultPathSetResolver
+class DefaultPathSetResolver
     implements PathSetResolver
 {
 
-    public Collection<Path> resolve( PathSet paths, Map<File, FileState> states, Map<File, Collection<File>> outputs )
+    public Collection<Path> resolve( PathSetResolutionContext context )
     {
         Collection<Path> dirtyPaths = new ArrayList<Path>();
         Collection<File> selectedFiles = new HashSet<File>();
 
-        Selector selector =
-            new Selector( paths.getIncludes(), paths.getExcludes(), paths.isDefaultExcludes(), paths.isCaseSensitive() );
-
-        File basedir = paths.getBasedir();
-        if ( !PathSet.Kind.FILES_ONLY.equals( paths.getKind() ) && selector.isSelected( "" ) )
+        File basedir = context.getPathSet().getBasedir();
+        if ( context.getPathSet().isIncludingDirectories() && context.isSelected( "" ) )
         {
-            if ( isProcessingRequired( basedir, states, outputs ) )
+            if ( context.isProcessingRequired( basedir ) )
             {
                 dirtyPaths.add( new Path( "" ) );
             }
             selectedFiles.add( basedir );
         }
-        scan( selectedFiles, dirtyPaths, basedir, "", paths.getKind(), selector, states, outputs );
+        scan( selectedFiles, dirtyPaths, basedir, "", context );
 
-        if ( states != null )
+        for ( String pathname : context.getDeletedInputPaths( selectedFiles ) )
         {
-            for ( File file : states.keySet() )
-            {
-                String pathname = FileUtils.relativize( file, basedir );
-                if ( pathname != null && selector.isSelected( pathname ) && !selectedFiles.contains( file ) )
-                {
-                    dirtyPaths.add( new Path( pathname, true ) );
-                }
-            }
+            dirtyPaths.add( new Path( pathname, true ) );
         }
 
         return dirtyPaths;
     }
 
     private void scan( Collection<File> selectedFiles, Collection<Path> paths, File dir, String pathPrefix,
-                       PathSet.Kind kind, Selector selector, Map<File, FileState> states,
-                       Map<File, Collection<File>> outputs )
+                       PathSetResolutionContext context )
     {
         String[] files = dir.list();
         if ( files == null )
         {
             return;
         }
+
+        boolean includeDirs = context.getPathSet().isIncludingDirectories();
+        boolean includeFiles = context.getPathSet().isIncludingFiles();
+
         for ( int i = 0; i < files.length; i++ )
         {
-            String path = pathPrefix + files[i];
+            String pathname = pathPrefix + files[i];
             File file = new File( dir, files[i] );
+
             if ( file.isDirectory() )
             {
-                if ( !PathSet.Kind.FILES_ONLY.equals( kind ) && selector.isSelected( path ) )
+                if ( includeDirs && context.isSelected( pathname ) )
                 {
                     selectedFiles.add( file );
-                    if ( isProcessingRequired( file, states, outputs ) )
+                    if ( context.isProcessingRequired( file ) )
                     {
-                        paths.add( new Path( path ) );
+                        paths.add( new Path( pathname ) );
                     }
                 }
-                if ( selector.couldHoldIncluded( path ) )
+                if ( context.isAncestorOfPotentiallySelected( pathname ) )
                 {
-                    scan( selectedFiles, paths, file, path + File.separator, kind, selector, states, outputs );
+                    scan( selectedFiles, paths, file, pathname + File.separator, context );
                 }
             }
             else if ( file.isFile() )
             {
-                if ( !PathSet.Kind.DIRECTORIES_ONLY.equals( kind ) && selector.isSelected( path ) )
+                if ( includeFiles && context.isSelected( pathname ) )
                 {
                     selectedFiles.add( file );
-                    if ( isProcessingRequired( file, states, outputs ) )
+                    if ( context.isProcessingRequired( file ) )
                     {
-                        paths.add( new Path( path ) );
+                        paths.add( new Path( pathname ) );
                     }
                 }
             }
         }
-    }
-
-    private boolean isProcessingRequired( File input, Map<File, FileState> states, Map<File, Collection<File>> outputs )
-    {
-        FileState previousState = ( states != null ) ? states.get( input ) : null;
-        if ( previousState == null )
-        {
-            return true;
-        }
-        if ( previousState.getTimestamp() != input.lastModified() )
-        {
-            return true;
-        }
-        if ( previousState.getSize() != input.length() )
-        {
-            return true;
-        }
-        if ( isOutputMissing( input, outputs ) )
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isOutputMissing( File input, Map<File, Collection<File>> outputs )
-    {
-        Collection<File> outs = outputs.get( input );
-        if ( outs != null )
-        {
-            for ( File out : outs )
-            {
-                if ( !out.exists() )
-                {
-                    return true;
-                }
-            }
-        }
-        return outs == null || outs.isEmpty();
     }
 
 }

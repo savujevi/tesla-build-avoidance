@@ -34,6 +34,8 @@ class DefaultBuildContext
     implements BuildContext
 {
 
+    private final PathSetResolver pathSetResolver;
+
     private final MessageHandler messageHandler;
 
     private final OutputListener outputListener;
@@ -45,8 +47,6 @@ class DefaultBuildContext
     private final File ioFile;
 
     private final File configFile;
-
-    private final PathSetResolver pathSetResolver = new DefaultPathSetResolver();
 
     private Map<PathSet, byte[]> configurations;
 
@@ -68,9 +68,10 @@ class DefaultBuildContext
     private transient Collection<File> unmodifiedOutputs;
 
     private long start;
-    
+
     public DefaultBuildContext( File outputDirectory, File contextDirectory, String pluginId,
-                                MessageHandler messageHandler, OutputListener outputListener, Logger log )
+                                PathSetResolver pathSetResolver, MessageHandler messageHandler,
+                                OutputListener outputListener, Logger log )
     {
         if ( outputDirectory == null )
         {
@@ -84,9 +85,14 @@ class DefaultBuildContext
         {
             throw new IllegalArgumentException( "plugin id not specified" );
         }
+        if ( pathSetResolver == null )
+        {
+            throw new IllegalArgumentException( "path set resolver not specified" );
+        }
 
         start = System.currentTimeMillis();
 
+        this.pathSetResolver = pathSetResolver;
         this.messageHandler = ( messageHandler != null ) ? messageHandler : NullMessageHandler.INSTANCE;
         this.outputListener = ( outputListener != null ) ? outputListener : NullOutputListener.INSTANCE;
         this.log = ( log != null ) ? log : NullLogger.INSTANCE;
@@ -146,8 +152,12 @@ class DefaultBuildContext
 
     public Collection<String> getInputs( PathSet paths, boolean fullBuild )
     {
+        PathSetResolutionContext context =
+            new DefaultPathSetResolutionContext( this, paths, fullBuild, inputStates, inputs, outputs );
+
         Collection<String> inputs = new ArrayList<String>();
-        for ( Path path : pathSetResolver.resolve( paths, fullBuild ? null : inputStates, outputs ) )
+
+        for ( Path path : pathSetResolver.resolve( context ) )
         {
             if ( path.isDeleted() )
             {
@@ -158,6 +168,7 @@ class DefaultBuildContext
                 inputs.add( path.getPath() );
             }
         }
+
         return inputs;
     }
 
