@@ -33,24 +33,47 @@ class FileUtils
 
     public static String relativize( File file, File basedir )
     {
-        String pathname = "";
-        for ( File current = file; !basedir.equals( current ); )
+        String pathname;
+
+        String basePath = basedir.getPath();
+        String filePath = file.getPath();
+        if ( filePath.startsWith( basePath ) )
         {
-            String filename = current.getName();
-            current = current.getParentFile();
-            if ( current == null )
+            if ( filePath.length() == basePath.length() )
             {
-                return null;
+                pathname = "";
             }
-            if ( pathname.length() > 0 )
+            else if ( filePath.charAt( basePath.length() ) == File.separatorChar )
             {
-                pathname = filename + File.separatorChar + pathname;
+                pathname = filePath.substring( basePath.length() + 1 );
             }
             else
             {
-                pathname = filename;
+                pathname = null;
             }
         }
+        else
+        {
+            pathname = "";
+            for ( File current = file; !basedir.equals( current ); )
+            {
+                String filename = current.getName();
+                current = current.getParentFile();
+                if ( current == null )
+                {
+                    return null;
+                }
+                if ( pathname.length() > 0 )
+                {
+                    pathname = filename + File.separatorChar + pathname;
+                }
+                else
+                {
+                    pathname = filename;
+                }
+            }
+        }
+
         return pathname;
     }
 
