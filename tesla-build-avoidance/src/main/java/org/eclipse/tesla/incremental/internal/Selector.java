@@ -8,12 +8,14 @@ package org.eclipse.tesla.incremental.internal;
  *   http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
+import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 
 class Selector
 {
 
-    private static final String[] DEFAULTEXCLUDES = {
+    private static final String[] DEFAULT_EXCLUDES = {
 
         // Miscellaneous typical temporary files
         "**/*~", "**/#*#", "**/.#*", "**/%*%", "**/._*",
@@ -71,13 +73,54 @@ class Selector
     public Selector( Collection<String> includes, Collection<String> excludes, boolean defaultExcludes,
                      boolean caseSensitive )
     {
-        this.includes = includes.toArray( new String[includes.size()] );
-        this.excludes =
-            excludes.toArray( new String[excludes.size() + ( defaultExcludes ? DEFAULTEXCLUDES.length : 0 )] );
+        Collection<String> normalizedIncludes = new LinkedHashSet<String>( 128 );
+        if ( includes != null )
+        {
+            for ( String include : includes )
+            {
+                if ( include != null )
+                {
+                    normalizedIncludes.add( normalizePattern( include ) );
+                }
+            }
+        }
+
+        Collection<String> normalizedExcludes = new LinkedHashSet<String>( 128 );
+        if ( excludes != null )
+        {
+            for ( String exclude : excludes )
+            {
+                if ( exclude != null )
+                {
+                    normalizedExcludes.add( normalizePattern( exclude ) );
+                }
+            }
+        }
         if ( defaultExcludes )
         {
-            System.arraycopy( DEFAULTEXCLUDES, 0, this.excludes, excludes.size(), DEFAULTEXCLUDES.length );
+            for ( String exclude : DEFAULT_EXCLUDES )
+            {
+                normalizedExcludes.add( normalizePattern( exclude ) );
+            }
         }
+
+        this.includes = normalizedIncludes.toArray( new String[normalizedIncludes.size()] );
+        this.excludes = normalizedExcludes.toArray( new String[normalizedExcludes.size()] );
+        this.caseSensitive = caseSensitive;
+    }
+
+    private static String normalizePattern( String pattern )
+    {
+        String result = pattern;
+        if ( pattern != null )
+        {
+            result = pattern.replace( File.separatorChar == '/' ? '\\' : '/', File.separatorChar );
+            if ( result.endsWith( File.separator ) )
+            {
+                result += "**";
+            }
+        }
+        return result;
     }
 
     public boolean isSelected( String pathname )
