@@ -48,7 +48,7 @@ public class DefaultPathSetResolver
         {
             for ( File file : states.keySet() )
             {
-                String pathname = relativize( file, basedir );
+                String pathname = FileUtils.relativize( file, basedir );
                 if ( pathname != null && selector.isSelected( pathname ) && !selectedFiles.contains( file ) )
                 {
                     dirtyPaths.add( new Path( pathname, true ) );
@@ -57,29 +57,6 @@ public class DefaultPathSetResolver
         }
 
         return dirtyPaths;
-    }
-
-    String relativize( File file, File basedir )
-    {
-        String pathname = "";
-        for ( File current = file; !basedir.equals( current ); )
-        {
-            String filename = current.getName();
-            current = current.getParentFile();
-            if ( current == null )
-            {
-                return null;
-            }
-            if ( pathname.length() > 0 )
-            {
-                pathname = filename + File.separatorChar + pathname;
-            }
-            else
-            {
-                pathname = filename;
-            }
-        }
-        return pathname;
     }
 
     private void scan( Collection<File> selectedFiles, Collection<Path> paths, File dir, String pathPrefix,

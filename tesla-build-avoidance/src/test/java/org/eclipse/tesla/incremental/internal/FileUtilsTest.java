@@ -12,26 +12,19 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 
-import javax.inject.Inject;
-
 import org.junit.Test;
-import org.sonatype.guice.bean.containers.InjectedTest;
 
-public class DefaultPathSetResolverTest
-    extends InjectedTest
+public class FileUtilsTest
 {
-
-    @Inject
-    private DefaultPathSetResolver resolver;
 
     @Test
     public void testRelativize()
     {
         File basedir = new File( "target/tests" ).getAbsoluteFile();
-        assertEquals( "", resolver.relativize( basedir, basedir ) );
-        assertEquals( "file.txt", resolver.relativize( new File( basedir, "file.txt" ), basedir ) );
-        assertEquals( "dir" + File.separator + "file", resolver.relativize( new File( basedir, "dir/file" ), basedir ) );
-        assertNull( resolver.relativize( new File( "" ).getAbsoluteFile(), basedir ) );
+        assertEquals( "", FileUtils.relativize( basedir, basedir ) );
+        assertEquals( "file.txt", FileUtils.relativize( new File( basedir, "file.txt" ), basedir ) );
+        assertEquals( "dir" + File.separator + "file", FileUtils.relativize( new File( basedir, "dir/file" ), basedir ) );
+        assertNull( FileUtils.relativize( new File( "" ).getAbsoluteFile(), basedir ) );
     }
 
 }
