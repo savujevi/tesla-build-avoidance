@@ -342,7 +342,7 @@ class DefaultBuildContext
                 }
                 else if ( output.exists() )
                 {
-                    log.debug( "Failed to delete " + type + "output " + output );
+                    log.debug( "Failed to delete " + type + " output " + output );
                 }
             }
         }
