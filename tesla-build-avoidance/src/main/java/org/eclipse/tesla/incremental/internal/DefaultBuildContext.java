@@ -257,26 +257,35 @@ class DefaultBuildContext
     {
         modifiedOutputs.retainAll( unmodifiedOutputs );
 
-        deleteOutputsWhoseInputStillExistsButNoLongerGeneratesThem();
-        deleteOutputsWhoseInputHasBeenDeleted();
+        int deleted1 = deleteOutputsWhoseInputStillExistsButNoLongerGeneratesThem();
+        int deleted2 = deleteOutputsWhoseInputHasBeenDeleted();
+
+        if ( log.isDebugEnabled() )
+        {
+            log.debug( modifiedOutputs.size() + " outputs produced, " + deleted1 + " obsolete outputs deleted, "
+                + deleted2 + " orphaned outputs deleted" );
+        }
 
         save();
 
         outputListener.outputUpdated( modifiedOutputs );
     }
 
-    private void deleteOutputsWhoseInputHasBeenDeleted()
+    private int deleteOutputsWhoseInputHasBeenDeleted()
     {
+        int deleted = 0;
         for ( File deletedInput : deletedInputs )
         {
             inputStates.remove( deletedInput );
             Collection<File> outputs = this.outputs.get( deletedInput );
-            deleteSuperfluousOutputs( deletedInput, outputs );
+            deleted += deleteSuperfluousOutputs( deletedInput, outputs );
         }
+        return deleted;
     }
 
-    private void deleteOutputsWhoseInputStillExistsButNoLongerGeneratesThem()
+    private int deleteOutputsWhoseInputStillExistsButNoLongerGeneratesThem()
     {
+        int deleted = 0;
         for ( Map.Entry<File, Collection<File>> entry : addedOutputs.entrySet() )
         {
             File input = entry.getKey();
@@ -288,15 +297,17 @@ class DefaultBuildContext
             }
             previousOutputs = new HashSet<File>( previousOutputs );
             previousOutputs.removeAll( currentOutputs );
-            deleteSuperfluousOutputs( input, previousOutputs );
+            deleted += deleteSuperfluousOutputs( input, previousOutputs );
         }
+        return deleted;
     }
 
-    private void deleteSuperfluousOutputs( File input, Collection<File> outputs )
+    private int deleteSuperfluousOutputs( File input, Collection<File> outputs )
     {
+        int deleted = 0;
         if ( outputs == null || outputs.isEmpty() )
         {
-            return;
+            return deleted;
         }
         for ( File output : outputs )
         {
@@ -309,16 +320,18 @@ class DefaultBuildContext
             if ( inputs.isEmpty() )
             {
                 this.inputs.remove( output );
-                if ( !output.delete() && output.exists() )
+                if ( output.delete() )
                 {
-                    log.debug( "Failed to delete stale output " + output );
+                    deleted++;
+                    log.debug( "Deleted invalid output " + output );
                 }
-                else
+                else if ( output.exists() )
                 {
-                    log.debug( "Deleted stale output " + output );
+                    log.debug( "Failed to delete invalid output " + output );
                 }
             }
         }
+        return deleted;
     }
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
