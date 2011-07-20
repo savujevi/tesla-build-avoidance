@@ -40,7 +40,7 @@ public class FileUtilsTest
         }
         else
         {
-            testdirs = Arrays.asList( new File( "target/tests" ).getAbsoluteFile() );
+            testdirs = Arrays.asList( basedir );
         }
 
         for ( File testdir : testdirs )
