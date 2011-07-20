@@ -21,14 +21,17 @@ class FileState
 
     private final long size;
 
+    private final boolean directory;
+
     public FileState( File file )
     {
         if ( file == null )
         {
             throw new IllegalArgumentException( "file not specified" );
         }
-        this.timestamp = file.lastModified();
-        this.size = file.length();
+        timestamp = file.lastModified();
+        size = file.length();
+        directory = file.isDirectory();
     }
 
     public long getTimestamp()
@@ -39,6 +42,11 @@ class FileState
     public long getSize()
     {
         return size;
+    }
+
+    public boolean isDirectory()
+    {
+        return directory;
     }
 
     @Override
@@ -53,7 +61,7 @@ class FileState
             return false;
         }
         FileState that = (FileState) obj;
-        return timestamp == that.timestamp && size == that.size;
+        return timestamp == that.timestamp && size == that.size && directory == that.directory;
     }
 
     @Override
@@ -63,6 +71,7 @@ class FileState
         hash = hash * 31 + (int) size;
         hash = hash * 31 + (int) timestamp;
         hash = hash * 31 + (int) ( timestamp >> 32 );
+        hash = hash * 31 + ( directory ? 1 : 0 );
         return hash;
     }
 

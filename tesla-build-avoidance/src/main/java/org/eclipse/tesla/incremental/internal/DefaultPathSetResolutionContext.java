@@ -83,8 +83,27 @@ class DefaultPathSetResolutionContext
         Collection<String> pathnames = new ArrayList<String>( 64 );
 
         File basedir = pathSet.getBasedir();
-        for ( File file : inputStates.keySet() )
+        boolean includeFiles = pathSet.isIncludingFiles();
+        boolean includeDirs = pathSet.isIncludingDirectories();
+
+        for ( Map.Entry<File, FileState> entry : inputStates.entrySet() )
         {
+            if ( entry.getValue().isDirectory() )
+            {
+                if ( !includeDirs )
+                {
+                    continue;
+                }
+            }
+            else
+            {
+                if ( !includeFiles )
+                {
+                    continue;
+                }
+            }
+
+            File file = entry.getKey();
             String pathname = FileUtils.relativize( file, basedir );
             if ( pathname != null && selector.isSelected( pathname ) && !existingInputs.contains( file ) )
             {
