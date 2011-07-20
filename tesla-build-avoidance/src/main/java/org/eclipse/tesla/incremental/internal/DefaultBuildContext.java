@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
 
 import org.eclipse.tesla.incremental.BuildContext;
@@ -54,7 +53,7 @@ class DefaultBuildContext
     private Map<File, FileState> inputStates;
 
     // output -> input
-    private Map<File, Set<File>> inputs;
+    private Map<File, Collection<File>> inputs;
 
     // input -> outputs
     private transient Map<File, Collection<File>> outputs;
@@ -115,7 +114,7 @@ class DefaultBuildContext
         load();
 
         this.outputs = new HashMap<File, Collection<File>>();
-        for ( Map.Entry<File, Set<File>> entry : inputs.entrySet() )
+        for ( Map.Entry<File, Collection<File>> entry : inputs.entrySet() )
         {
             File outputFile = entry.getKey();
             for ( File inputFile : entry.getValue() )
@@ -244,7 +243,7 @@ class DefaultBuildContext
 
         for ( File output : outputs )
         {
-            Set<File> inputs = this.inputs.get( output );
+            Collection<File> inputs = this.inputs.get( output );
             if ( inputs == null )
             {
                 inputs = new TreeSet<File>();
@@ -357,7 +356,7 @@ class DefaultBuildContext
         inputs = (Map) objects[0];
         if ( inputs == null )
         {
-            inputs = new HashMap<File, Set<File>>();
+            inputs = new HashMap<File, Collection<File>>();
         }
         inputStates = (Map) objects[1];
         if ( inputStates == null )

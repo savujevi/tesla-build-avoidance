@@ -12,7 +12,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.PathSet;
@@ -33,13 +32,13 @@ class DefaultPathSetResolutionContext
     private final Map<File, FileState> inputStates;
 
     // output -> input
-    private final Map<File, Set<File>> inputs;
+    private final Map<File, Collection<File>> inputs;
 
     // input -> outputs
     private final Map<File, Collection<File>> outputs;
 
     public DefaultPathSetResolutionContext( BuildContext buildContext, PathSet pathSet, boolean fullBuild,
-                                            Map<File, FileState> inputStates, Map<File, Set<File>> inputs,
+                                            Map<File, FileState> inputStates, Map<File, Collection<File>> inputs,
                                             Map<File, Collection<File>> outputs )
     {
         this.outputDirectory = buildContext.getOutputDirectory();
@@ -81,7 +80,7 @@ class DefaultPathSetResolutionContext
 
     public Collection<String> getDeletedInputPaths( Collection<File> existingInputs )
     {
-        Collection<String> deletedInputPaths = new ArrayList<String>( 64 );
+        Collection<String> pathnames = new ArrayList<String>( 64 );
 
         File basedir = pathSet.getBasedir();
         for ( File file : inputStates.keySet() )
@@ -89,11 +88,32 @@ class DefaultPathSetResolutionContext
             String pathname = FileUtils.relativize( file, basedir );
             if ( pathname != null && selector.isSelected( pathname ) && !existingInputs.contains( file ) )
             {
-                deletedInputPaths.add( pathname );
+                pathnames.add( pathname );
             }
         }
 
-        return deletedInputPaths;
+        return pathnames;
+    }
+
+    public Collection<String> getInputPaths( File outputFile )
+    {
+        Collection<String> pathnames = new ArrayList<String>( 64 );
+
+        Collection<File> inputs = this.inputs.get( outputFile );
+        if ( inputs != null && !inputs.isEmpty() )
+        {
+            File basedir = pathSet.getBasedir();
+            for ( File file : inputs )
+            {
+                String pathname = FileUtils.relativize( file, basedir );
+                if ( pathname != null && selector.isSelected( pathname ) )
+                {
+                    pathnames.add( pathname );
+                }
+            }
+        }
+
+        return pathnames;
     }
 
     public boolean isProcessingRequired( File input )

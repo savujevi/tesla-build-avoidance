@@ -28,7 +28,7 @@ public interface PathSetResolutionContext
 
     Collection<String> getDeletedInputPaths( Collection<File> existingInputs );
 
-//    Collection<String> getInputPaths( File outputFile ); // eclipse
+    Collection<String> getInputPaths( File outputFile );
 
     boolean isProcessingRequired( File input );
 
