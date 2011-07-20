@@ -23,15 +23,19 @@ class DefaultPathSetResolver
         Collection<File> selectedFiles = new HashSet<File>();
 
         File basedir = context.getPathSet().getBasedir();
-        if ( context.getPathSet().isIncludingDirectories() && context.isSelected( "" ) )
+        String[] children = basedir.list();
+        if ( children != null )
         {
-            if ( context.isProcessingRequired( basedir ) )
+            if ( context.getPathSet().isIncludingDirectories() && context.isSelected( "" ) )
             {
-                dirtyPaths.add( new Path( "" ) );
+                if ( context.isProcessingRequired( basedir ) )
+                {
+                    dirtyPaths.add( new Path( "" ) );
+                }
+                selectedFiles.add( basedir );
             }
-            selectedFiles.add( basedir );
+            scan( selectedFiles, dirtyPaths, basedir, "", children, context );
         }
-        scan( selectedFiles, dirtyPaths, basedir, "", context );
 
         for ( String pathname : context.getDeletedInputPaths( selectedFiles ) )
         {
@@ -42,14 +46,8 @@ class DefaultPathSetResolver
     }
 
     private void scan( Collection<File> selectedFiles, Collection<Path> paths, File dir, String pathPrefix,
-                       PathSetResolutionContext context )
+                       String[] files, PathSetResolutionContext context )
     {
-        String[] files = dir.list();
-        if ( files == null )
-        {
-            return;
-        }
-
         boolean includeDirs = context.getPathSet().isIncludingDirectories();
         boolean includeFiles = context.getPathSet().isIncludingFiles();
 
@@ -57,8 +55,20 @@ class DefaultPathSetResolver
         {
             String pathname = pathPrefix + files[i];
             File file = new File( dir, files[i] );
+            String[] children = file.list();
 
-            if ( file.isDirectory() )
+            if ( children == null || ( children.length <= 0 && file.isFile() ) )
+            {
+                if ( includeFiles && context.isSelected( pathname ) )
+                {
+                    selectedFiles.add( file );
+                    if ( context.isProcessingRequired( file ) )
+                    {
+                        paths.add( new Path( pathname ) );
+                    }
+                }
+            }
+            else
             {
                 if ( includeDirs && context.isSelected( pathname ) )
                 {
@@ -70,18 +80,7 @@ class DefaultPathSetResolver
                 }
                 if ( context.isAncestorOfPotentiallySelected( pathname ) )
                 {
-                    scan( selectedFiles, paths, file, pathname + File.separator, context );
-                }
-            }
-            else if ( file.isFile() )
-            {
-                if ( includeFiles && context.isSelected( pathname ) )
-                {
-                    selectedFiles.add( file );
-                    if ( context.isProcessingRequired( file ) )
-                    {
-                        paths.add( new Path( pathname ) );
-                    }
+                    scan( selectedFiles, paths, file, pathname + File.separator, children, context );
                 }
             }
         }

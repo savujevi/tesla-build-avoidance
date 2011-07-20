@@ -356,17 +356,17 @@ class DefaultBuildContext
         inputs = (Map) objects[0];
         if ( inputs == null )
         {
-            inputs = new HashMap<File, Collection<File>>();
+            inputs = new HashMap<File, Collection<File>>( 256 );
         }
         inputStates = (Map) objects[1];
         if ( inputStates == null )
         {
-            inputStates = new HashMap<File, FileState>();
+            inputStates = new HashMap<File, FileState>( 256 );
         }
         configurations = (Map) load( configFile, Map.class )[0];
         if ( configurations == null )
         {
-            configurations = new HashMap<PathSet, byte[]>();
+            configurations = new HashMap<PathSet, byte[]>( 256 );
         }
     }
 
