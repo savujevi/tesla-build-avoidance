@@ -77,8 +77,8 @@ class DefaultBuildContext
             throw new IllegalArgumentException( "plugin id not specified" );
         }
 
-        this.messages = messages;
-        this.log = log;
+        this.messages = ( messages != null ) ? messages : NullMessageHandler.INSTANCE;
+        this.log = ( log != null ) ? log : NullLogger.INSTANCE;
 
         this.outputDirectory = outputDirectory.getAbsoluteFile();
 

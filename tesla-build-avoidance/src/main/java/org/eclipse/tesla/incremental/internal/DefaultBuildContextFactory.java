@@ -36,7 +36,7 @@ public class DefaultBuildContextFactory
     @Inject
     public DefaultBuildContextFactory( Logger log )
     {
-        this.log = ( log != null ) ? log : NullLogger.INSTANCE;
+        this.log = log;
     }
 
     protected Logger getLogger()
