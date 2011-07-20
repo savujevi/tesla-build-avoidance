@@ -38,11 +38,6 @@ class IncrementalFileOutputStream
         this.context = context;
         raf = new RandomAccessFile( file, "rw" );
         buffer = new byte[1024 * 16];
-    }
-
-    private void setModified()
-    {
-        modified = true;
         context.addOutput( file, true );
     }
 
@@ -53,7 +48,7 @@ class IncrementalFileOutputStream
         long pos = raf.getFilePointer();
         if ( pos < raf.length() )
         {
-            setModified();
+            modified = true;
             raf.setLength( pos );
         }
         if ( !modified )
@@ -78,7 +73,7 @@ class IncrementalFileOutputStream
                 int read = raf.read( buffer, 0, Math.min( buffer.length, n ) );
                 if ( read < 0 || !arrayEquals( b, off + len - n, buffer, 0, read ) )
                 {
-                    setModified();
+                    modified = true;
                     if ( read > 0 )
                     {
                         raf.seek( raf.getFilePointer() - read );
@@ -119,7 +114,7 @@ class IncrementalFileOutputStream
             int i = raf.read();
             if ( i < 0 || i != ( b & 0xFF ) )
             {
-                setModified();
+                modified = true;
                 if ( i >= 0 )
                 {
                     raf.seek( raf.getFilePointer() - 1 );

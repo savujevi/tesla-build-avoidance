@@ -67,6 +67,8 @@ class DefaultBuildContext
 
     private transient Collection<File> unmodifiedOutputs;
 
+    private long start;
+    
     public DefaultBuildContext( File outputDirectory, File contextDirectory, String pluginId,
                                 MessageHandler messageHandler, OutputListener outputListener, Logger log )
     {
@@ -82,6 +84,8 @@ class DefaultBuildContext
         {
             throw new IllegalArgumentException( "plugin id not specified" );
         }
+
+        start = System.currentTimeMillis();
 
         this.messageHandler = ( messageHandler != null ) ? messageHandler : NullMessageHandler.INSTANCE;
         this.outputListener = ( outputListener != null ) ? outputListener : NullOutputListener.INSTANCE;
@@ -255,18 +259,19 @@ class DefaultBuildContext
 
     public void finish()
     {
-        modifiedOutputs.retainAll( unmodifiedOutputs );
+        modifiedOutputs.removeAll( unmodifiedOutputs );
 
         int deleted1 = deleteOutputsWhoseInputStillExistsButNoLongerGeneratesThem();
         int deleted2 = deleteOutputsWhoseInputHasBeenDeleted();
 
+        save();
+
         if ( log.isDebugEnabled() )
         {
+            long millis = System.currentTimeMillis() - start;
             log.debug( modifiedOutputs.size() + " outputs produced, " + deleted1 + " obsolete outputs deleted, "
-                + deleted2 + " orphaned outputs deleted" );
+                + deleted2 + " orphaned outputs deleted, " + millis + " ms" );
         }
-
-        save();
 
         outputListener.outputUpdated( modifiedOutputs );
     }
@@ -278,7 +283,7 @@ class DefaultBuildContext
         {
             inputStates.remove( deletedInput );
             Collection<File> outputs = this.outputs.get( deletedInput );
-            deleted += deleteSuperfluousOutputs( deletedInput, outputs );
+            deleted += deleteSuperfluousOutputs( deletedInput, outputs, "orphaned" );
         }
         return deleted;
     }
@@ -297,12 +302,12 @@ class DefaultBuildContext
             }
             previousOutputs = new HashSet<File>( previousOutputs );
             previousOutputs.removeAll( currentOutputs );
-            deleted += deleteSuperfluousOutputs( input, previousOutputs );
+            deleted += deleteSuperfluousOutputs( input, previousOutputs, "obsolete" );
         }
         return deleted;
     }
 
-    private int deleteSuperfluousOutputs( File input, Collection<File> outputs )
+    private int deleteSuperfluousOutputs( File input, Collection<File> outputs, String type )
     {
         int deleted = 0;
         if ( outputs == null || outputs.isEmpty() )
@@ -323,11 +328,11 @@ class DefaultBuildContext
                 if ( output.delete() )
                 {
                     deleted++;
-                    log.debug( "Deleted invalid output " + output );
+                    log.debug( "Deleted " + type + " output " + output );
                 }
                 else if ( output.exists() )
                 {
-                    log.debug( "Failed to delete invalid output " + output );
+                    log.debug( "Failed to delete " + type + "output " + output );
                 }
             }
         }
