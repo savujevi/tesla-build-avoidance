@@ -29,8 +29,6 @@ class DefaultBuildContext
 
     private final DefaultBuildContextManager manager;
 
-    private final PathSetResolver pathSetResolver;
-
     private final Logger log;
 
     private final File outputDirectory;
@@ -47,8 +45,7 @@ class DefaultBuildContext
 
     private long start;
 
-    public DefaultBuildContext( DefaultBuildContextManager manager, File outputDirectory, BuildState buildState,
-                                PathSetResolver pathSetResolver )
+    public DefaultBuildContext( DefaultBuildContextManager manager, File outputDirectory, BuildState buildState )
     {
         if ( manager == null )
         {
@@ -62,17 +59,12 @@ class DefaultBuildContext
         {
             throw new IllegalArgumentException( "build state not specified" );
         }
-        if ( pathSetResolver == null )
-        {
-            throw new IllegalArgumentException( "path set resolver not specified" );
-        }
 
         start = System.currentTimeMillis();
 
         this.manager = manager;
         this.outputDirectory = outputDirectory.getAbsoluteFile();
         this.buildState = buildState;
-        this.pathSetResolver = pathSetResolver;
         this.log = manager.log;
 
         this.deletedInputs = new TreeSet<File>( Collections.reverseOrder() );
@@ -102,7 +94,7 @@ class DefaultBuildContext
 
         Collection<String> inputs = new ArrayList<String>();
 
-        for ( Path path : pathSetResolver.resolve( context ) )
+        for ( Path path : manager.resolve( context ) )
         {
             if ( path.isDeleted() )
             {
