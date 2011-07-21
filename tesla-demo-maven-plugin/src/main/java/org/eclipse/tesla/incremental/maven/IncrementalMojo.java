@@ -99,17 +99,17 @@ public class IncrementalMojo
     public void execute()
         throws MojoExecutionException
     {
-        // create fingerprint of our current configuration that is relevant for creation of output files
-        byte[] digest = factory.newDigester() //
-        .string( encoding ).string( targetPath ).value( filtering ) // simple value
-        .basedir( projectDirectory ).files( filters ) // potentially relative files, will consider file timestamp/length
-        .finish();
-
         // get build context for the output directory
         BuildContext context = factory.newContext( outputDirectory, contextDirectory, pluginId );
 
         try
         {
+            // create fingerprint of our current configuration that is relevant for creation of output files
+            byte[] digest = context.newDigester() //
+            .string( encoding ).string( targetPath ).value( filtering ) // simple value
+            .basedir( projectDirectory ).files( filters ) // potentially relative files, considers timestamp/length
+            .finish();
+
             Properties filterProps = new Properties();
             IOUtils.load( filterProps, filters, projectDirectory );
             filterProps.putAll( System.getProperties() );

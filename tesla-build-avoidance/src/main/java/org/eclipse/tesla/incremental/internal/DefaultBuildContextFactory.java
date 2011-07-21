@@ -23,7 +23,6 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.BuildContextFactory;
-import org.eclipse.tesla.incremental.Digester;
 
 @Named
 @Singleton
@@ -128,11 +127,6 @@ public class DefaultBuildContextFactory
         File workDir = new File( contextDirectory.getAbsolutePath(), name );
         return new File( workDir, pluginId.substring( 0, Math.min( 4, pluginId.length() ) )
             + Integer.toHexString( pluginId.hashCode() ) + ".ser" );
-    }
-
-    public Digester newDigester()
-    {
-        return new DefaultDigester();
     }
 
 }

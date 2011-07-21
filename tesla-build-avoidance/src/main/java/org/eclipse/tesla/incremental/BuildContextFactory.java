@@ -15,6 +15,4 @@ public interface BuildContextFactory
 
     BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId );
 
-    Digester newDigester();
-
 }

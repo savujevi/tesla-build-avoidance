@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import org.eclipse.tesla.incremental.BuildContext;
+import org.eclipse.tesla.incremental.Digester;
 import org.eclipse.tesla.incremental.PathSet;
 
 class DefaultBuildContext
@@ -77,6 +78,11 @@ class DefaultBuildContext
         this.addedOutputs = new HashMap<File, Collection<File>>();
         this.modifiedOutputs = new HashSet<File>();
         this.unmodifiedOutputs = new HashSet<File>();
+    }
+
+    public Digester newDigester()
+    {
+        return new DefaultDigester();
     }
 
     public File getOutputDirectory()

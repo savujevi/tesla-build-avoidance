@@ -20,6 +20,8 @@ public interface BuildContext
 
     public static final int SEVERITY_ERROR = 2;
 
+    Digester newDigester();
+
     File getOutputDirectory();
 
     // record current plugin config for fileset, signal if changed since last run
