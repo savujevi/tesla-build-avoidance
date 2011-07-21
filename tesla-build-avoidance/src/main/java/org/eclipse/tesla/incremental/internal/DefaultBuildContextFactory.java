@@ -12,6 +12,7 @@ import java.io.File;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -20,6 +21,7 @@ import org.eclipse.tesla.incremental.BuildContextFactory;
 import org.eclipse.tesla.incremental.Digester;
 
 @Named
+@Singleton
 @Component( role = BuildContextFactory.class )
 public class DefaultBuildContextFactory
     implements BuildContextFactory
