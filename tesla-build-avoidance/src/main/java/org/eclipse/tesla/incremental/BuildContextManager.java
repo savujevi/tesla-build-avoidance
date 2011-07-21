@@ -10,9 +10,17 @@ package org.eclipse.tesla.incremental;
 
 import java.io.File;
 
-public interface BuildContextFactory
+public interface BuildContextManager
 {
 
+    public static final int SEVERITY_WARNING = BuildContext.SEVERITY_WARNING;
+
+    public static final int SEVERITY_ERROR = BuildContext.SEVERITY_ERROR;
+
     BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId );
+
+    void addMessage( File input, int line, int column, String message, int severity, Throwable cause );
+
+    void clearMessages( File input );
 
 }

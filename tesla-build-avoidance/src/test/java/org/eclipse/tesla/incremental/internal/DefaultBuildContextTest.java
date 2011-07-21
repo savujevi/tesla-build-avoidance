@@ -22,7 +22,7 @@ import java.util.Queue;
 import javax.inject.Inject;
 
 import org.eclipse.tesla.incremental.BuildContext;
-import org.eclipse.tesla.incremental.BuildContextFactory;
+import org.eclipse.tesla.incremental.BuildContextManager;
 import org.eclipse.tesla.incremental.PathSet;
 import org.junit.After;
 import org.junit.Before;
@@ -39,7 +39,7 @@ public class DefaultBuildContextTest
     public TestName testName = new TestName();
 
     @Inject
-    private BuildContextFactory factory;
+    private BuildContextManager manager;
 
     private File contextDirectory;
 
@@ -76,7 +76,7 @@ public class DefaultBuildContextTest
 
     private BuildContext newContext( File outputDirectory, String pluginId )
     {
-        return factory.newContext( outputDirectory, contextDirectory, pluginId );
+        return manager.newContext( outputDirectory, contextDirectory, pluginId );
     }
 
     private void assertSetEquals( Collection<?> actual, Object... expected )
@@ -127,7 +127,7 @@ public class DefaultBuildContextTest
             }
         }
 
-        ( (DefaultBuildContextFactory) factory ).buildStates.clear();
+        ( (DefaultBuildContextManager) manager ).buildStates.clear();
 
         ctx = newContext();
         try

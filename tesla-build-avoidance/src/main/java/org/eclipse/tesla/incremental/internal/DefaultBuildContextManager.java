@@ -22,13 +22,13 @@ import javax.inject.Singleton;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.eclipse.tesla.incremental.BuildContext;
-import org.eclipse.tesla.incremental.BuildContextFactory;
+import org.eclipse.tesla.incremental.BuildContextManager;
 
 @Named
 @Singleton
-@Component( role = BuildContextFactory.class )
-public class DefaultBuildContextFactory
-    implements BuildContextFactory
+@Component( role = BuildContextManager.class )
+public class DefaultBuildContextManager
+    implements BuildContextManager
 {
 
     @Requirement
@@ -36,26 +36,63 @@ public class DefaultBuildContextFactory
 
     final Map<File, WeakReference<BuildState>> buildStates;
 
-    public DefaultBuildContextFactory()
+    public DefaultBuildContextManager()
     {
         this( null );
     }
 
     @Inject
-    public DefaultBuildContextFactory( Logger log )
+    public DefaultBuildContextManager( Logger log )
     {
         this.log = ( log != null ) ? log : NullLogger.INSTANCE;
         buildStates = new HashMap<File, WeakReference<BuildState>>();
     }
 
+    public void addMessage( File input, int line, int column, String message, int severity, Throwable cause )
+    {
+        String msg = getMessage( input, line, column, message );
+        switch ( severity )
+        {
+            case BuildContext.SEVERITY_WARNING:
+                log.warn( msg, cause );
+                break;
+            case BuildContext.SEVERITY_ERROR:
+                log.error( msg, cause );
+                break;
+            default:
+                log.debug( msg, cause );
+                break;
+        }
+    }
+
+    protected String getMessage( File file, int line, int column, String message )
+    {
+        StringBuilder sb = new StringBuilder( 256 );
+        sb.append( file.getAbsolutePath() );
+        if ( line > 0 )
+        {
+            sb.append( " [" );
+            sb.append( line );
+            if ( column > 0 )
+            {
+                sb.append( ':' );
+                sb.append( column );
+            }
+            sb.append( "]" );
+        }
+        sb.append( ": " );
+        sb.append( message );
+        return sb.toString();
+    }
+
+    public void clearMessages( File input )
+    {
+        // defaults to noop
+    }
+
     protected PathSetResolver getPathSetResolver()
     {
         return new DefaultPathSetResolver();
-    }
-
-    protected MessageHandler getMessageHandler()
-    {
-        return new DefaultMessageHandler( log );
     }
 
     protected OutputListener getOutputListener()
@@ -66,8 +103,7 @@ public class DefaultBuildContextFactory
     public BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId )
     {
         BuildState buildState = getBuildState( outputDirectory, contextDirectory, pluginId );
-        return new DefaultBuildContext( outputDirectory, buildState, getPathSetResolver(), getMessageHandler(),
-                                        getOutputListener(), log );
+        return new DefaultBuildContext( this, outputDirectory, buildState, getPathSetResolver(), getOutputListener() );
     }
 
     protected BuildState getBuildState( File outputDirectory, File contextDirectory, String pluginId )

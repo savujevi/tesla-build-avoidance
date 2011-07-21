@@ -16,7 +16,7 @@ import java.util.Properties;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.eclipse.tesla.incremental.BuildContext;
-import org.eclipse.tesla.incremental.BuildContextFactory;
+import org.eclipse.tesla.incremental.BuildContextManager;
 import org.eclipse.tesla.incremental.PathSet;
 
 /**
@@ -92,7 +92,7 @@ public class IncrementalMojo
     /**
      * @component
      */
-    private BuildContextFactory factory;
+    private BuildContextManager contextManager;
 
     // --- mojo logic -----------------------------------------------
 
@@ -100,7 +100,7 @@ public class IncrementalMojo
         throws MojoExecutionException
     {
         // get build context for the output directory
-        BuildContext context = factory.newContext( outputDirectory, contextDirectory, pluginId );
+        BuildContext context = contextManager.newContext( outputDirectory, contextDirectory, pluginId );
 
         try
         {

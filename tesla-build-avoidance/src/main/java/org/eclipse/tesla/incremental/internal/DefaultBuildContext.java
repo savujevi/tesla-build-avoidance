@@ -27,9 +27,9 @@ class DefaultBuildContext
     implements BuildContext
 {
 
-    private final PathSetResolver pathSetResolver;
+    private final DefaultBuildContextManager factory;
 
-    private final MessageHandler messageHandler;
+    private final PathSetResolver pathSetResolver;
 
     private final OutputListener outputListener;
 
@@ -49,9 +49,13 @@ class DefaultBuildContext
 
     private long start;
 
-    public DefaultBuildContext( File outputDirectory, BuildState buildState, PathSetResolver pathSetResolver,
-                                MessageHandler messageHandler, OutputListener outputListener, Logger log )
+    public DefaultBuildContext( DefaultBuildContextManager manager, File outputDirectory, BuildState buildState,
+                                PathSetResolver pathSetResolver, OutputListener outputListener )
     {
+        if ( manager == null )
+        {
+            throw new IllegalArgumentException( "build context factory not specified" );
+        }
         if ( outputDirectory == null )
         {
             throw new IllegalArgumentException( "output directory not specified" );
@@ -67,12 +71,12 @@ class DefaultBuildContext
 
         start = System.currentTimeMillis();
 
+        this.factory = manager;
         this.outputDirectory = outputDirectory.getAbsoluteFile();
         this.buildState = buildState;
         this.pathSetResolver = pathSetResolver;
-        this.messageHandler = ( messageHandler != null ) ? messageHandler : NullMessageHandler.INSTANCE;
         this.outputListener = ( outputListener != null ) ? outputListener : NullOutputListener.INSTANCE;
-        this.log = ( log != null ) ? log : NullLogger.INSTANCE;
+        this.log = manager.log;
 
         this.deletedInputs = new TreeSet<File>( Collections.reverseOrder() );
         this.addedOutputs = new HashMap<File, Collection<File>>();
@@ -267,12 +271,12 @@ class DefaultBuildContext
 
     public void addMessage( File input, int line, int column, String message, int severity, Throwable cause )
     {
-        messageHandler.addMessage( input, line, column, message, severity, cause );
+        factory.addMessage( input, line, column, message, severity, cause );
     }
 
     public void clearMessages( File input )
     {
-        messageHandler.clearMessages( input );
+        factory.clearMessages( input );
     }
 
 }
