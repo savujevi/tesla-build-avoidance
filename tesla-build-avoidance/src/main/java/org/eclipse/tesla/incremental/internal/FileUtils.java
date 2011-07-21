@@ -20,13 +20,13 @@ class FileUtils
         {
             result = file;
         }
-        else if ( file.getPath().startsWith( File.separator ) || basedir == null )
+        else if ( basedir == null || file.getPath().startsWith( File.separator ) )
         {
             result = file.getAbsoluteFile();
         }
         else
         {
-            result = new File( basedir, file.getPath() ).getAbsoluteFile();
+            result = new File( basedir.getAbsolutePath(), file.getPath() );
         }
         return result;
     }
