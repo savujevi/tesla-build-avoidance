@@ -83,7 +83,7 @@ class DefaultBuildContext
 
     public Digester newDigester()
     {
-        return new DefaultDigester();
+        return manager.newDigester();
     }
 
     public File getOutputDirectory()

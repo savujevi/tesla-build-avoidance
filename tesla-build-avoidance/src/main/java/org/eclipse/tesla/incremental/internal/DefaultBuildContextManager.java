@@ -24,6 +24,7 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.BuildContextManager;
+import org.eclipse.tesla.incremental.Digester;
 
 @Named
 @Singleton
@@ -100,6 +101,11 @@ public class DefaultBuildContextManager
     {
         BuildState buildState = getBuildState( outputDirectory, contextDirectory, pluginId );
         return new DefaultBuildContext( this, outputDirectory, buildState, getPathSetResolver() );
+    }
+
+    protected Digester newDigester()
+    {
+        return new DefaultDigester();
     }
 
     protected BuildState getBuildState( File outputDirectory, File contextDirectory, String pluginId )
