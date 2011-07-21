@@ -26,6 +26,37 @@ public class FileUtilsTest
     }
 
     @Test
+    public void testResolve()
+    {
+        File basedir = new File( "target" ).getAbsoluteFile();
+        String pathname = "relative/file.txt";
+        assertEquals( new File( basedir, pathname ), FileUtils.resolve( new File( pathname ), basedir ) );
+    }
+
+    @Test
+    public void testResolve_NullFile()
+    {
+        assertNull( FileUtils.resolve( null, new File( "" ) ) );
+    }
+
+    @Test
+    public void testResolve_NullBasedir()
+    {
+        File workdir = new File( "" ).getAbsoluteFile();
+        String pathname = "relative/file.txt";
+        assertEquals( new File( workdir, pathname ), FileUtils.resolve( new File( pathname ), null ) );
+    }
+
+    @Test
+    public void testResolve_RelativeBasedir()
+    {
+        File basedir = new File( "target" );
+        String pathname = "relative/file.txt";
+        assertEquals( new File( basedir, pathname ).getAbsoluteFile(),
+                      FileUtils.resolve( new File( pathname ), basedir ) );
+    }
+
+    @Test
     public void testRelativize()
     {
         File basedir = new File( "target/TESTS" ).getAbsoluteFile();
@@ -51,6 +82,28 @@ public class FileUtilsTest
                           FileUtils.relativize( new File( testdir, "dir/file" ), basedir ) );
             assertNull( FileUtils.relativize( new File( "" ).getAbsoluteFile(), basedir ) );
         }
+    }
+
+    @Test
+    public void testRelativize_NullFile()
+    {
+        assertNull( FileUtils.relativize( null, new File( "" ) ) );
+    }
+
+    @Test
+    public void testRelativize_NullBasedir()
+    {
+        File workdir = new File( "" ).getAbsoluteFile();
+        File file = new File( workdir, "file.txt" );
+        assertEquals( file.getName(), FileUtils.relativize( file, null ) );
+    }
+
+    @Test
+    public void testRelativize_RelativeBasedir()
+    {
+        File basedir = new File( "target" );
+        File file = new File( basedir, "file.txt" ).getAbsoluteFile();
+        assertEquals( file.getName(), FileUtils.relativize( file, basedir ) );
     }
 
 }

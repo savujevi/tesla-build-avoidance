@@ -26,13 +26,26 @@ class FileUtils
         }
         else
         {
-            result = new File( basedir, file.getPath() );
+            result = new File( basedir, file.getPath() ).getAbsoluteFile();
         }
         return result;
     }
 
     public static String relativize( File file, File basedir )
     {
+        if ( file == null )
+        {
+            return null;
+        }
+        if ( basedir == null )
+        {
+            basedir = new File( "" ).getAbsoluteFile();
+        }
+        else if ( !basedir.isAbsolute() )
+        {
+            basedir = basedir.getAbsoluteFile();
+        }
+
         String pathname;
 
         String basePath = basedir.getPath();
