@@ -36,35 +36,28 @@ class DefaultBuildContext
 
     private final File outputDirectory;
 
-    private final File stateFile;
+    private final BuildState buildState;
 
-    private BuildState buildState;
+    private Collection<File> deletedInputs;
 
-    private transient Collection<File> deletedInputs;
+    private Map<File, Collection<File>> addedOutputs;
 
-    private transient Map<File, Collection<File>> addedOutputs;
+    private Collection<File> modifiedOutputs;
 
-    private transient Collection<File> modifiedOutputs;
-
-    private transient Collection<File> unmodifiedOutputs;
+    private Collection<File> unmodifiedOutputs;
 
     private long start;
 
-    public DefaultBuildContext( File outputDirectory, File contextDirectory, String pluginId,
-                                PathSetResolver pathSetResolver, MessageHandler messageHandler,
-                                OutputListener outputListener, Logger log )
+    public DefaultBuildContext( File outputDirectory, BuildState buildState, PathSetResolver pathSetResolver,
+                                MessageHandler messageHandler, OutputListener outputListener, Logger log )
     {
         if ( outputDirectory == null )
         {
             throw new IllegalArgumentException( "output directory not specified" );
         }
-        if ( contextDirectory == null )
+        if ( buildState == null )
         {
-            throw new IllegalArgumentException( "context directory not specified" );
-        }
-        if ( pluginId == null || pluginId.length() <= 0 )
-        {
-            throw new IllegalArgumentException( "plugin id not specified" );
+            throw new IllegalArgumentException( "build state not specified" );
         }
         if ( pathSetResolver == null )
         {
@@ -73,26 +66,17 @@ class DefaultBuildContext
 
         start = System.currentTimeMillis();
 
+        this.outputDirectory = outputDirectory.getAbsoluteFile();
+        this.buildState = buildState;
         this.pathSetResolver = pathSetResolver;
         this.messageHandler = ( messageHandler != null ) ? messageHandler : NullMessageHandler.INSTANCE;
         this.outputListener = ( outputListener != null ) ? outputListener : NullOutputListener.INSTANCE;
         this.log = ( log != null ) ? log : NullLogger.INSTANCE;
 
-        this.outputDirectory = outputDirectory.getAbsoluteFile();
-
-        String name = outputDirectory.getName();
-        name = name.substring( 0, Math.min( 4, name.length() ) ) + Integer.toHexString( name.hashCode() );
-        File workDir = new File( contextDirectory, name ).getAbsoluteFile();
-        stateFile =
-            new File( workDir, pluginId.substring( 0, Math.min( 4, pluginId.length() ) )
-                + Integer.toHexString( pluginId.hashCode() ) + ".ser" );
-
         this.deletedInputs = new TreeSet<File>( Collections.reverseOrder() );
         this.addedOutputs = new HashMap<File, Collection<File>>();
         this.modifiedOutputs = new HashSet<File>();
         this.unmodifiedOutputs = new HashSet<File>();
-
-        load();
     }
 
     public File getOutputDirectory()
@@ -262,22 +246,6 @@ class DefaultBuildContext
         return deleted;
     }
 
-    private void load()
-    {
-        try
-        {
-            buildState = BuildState.load( stateFile );
-        }
-        catch ( IOException e )
-        {
-            buildState = new BuildState( stateFile );
-            if ( stateFile.isFile() )
-            {
-                log.debug( "Could not deserialize incremental build state from " + stateFile, e );
-            }
-        }
-    }
-
     private void save()
     {
         try
@@ -286,7 +254,8 @@ class DefaultBuildContext
         }
         catch ( IOException e )
         {
-            log.debug( "Could not serialize incremental build state to " + stateFile, e );
+            log.warn( "Could not serialize incremental build state to " + buildState.getStateFile(),
+                      log.isDebugEnabled() ? e : null );
         }
     }
 

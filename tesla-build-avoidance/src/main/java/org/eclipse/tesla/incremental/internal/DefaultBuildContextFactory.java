@@ -9,6 +9,11 @@ package org.eclipse.tesla.incremental.internal;
  *******************************************************************************/
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -28,7 +33,9 @@ public class DefaultBuildContextFactory
 {
 
     @Requirement
-    private Logger log;
+    protected Logger log;
+
+    final Map<File, WeakReference<BuildState>> buildStates;
 
     public DefaultBuildContextFactory()
     {
@@ -38,12 +45,8 @@ public class DefaultBuildContextFactory
     @Inject
     public DefaultBuildContextFactory( Logger log )
     {
-        this.log = log;
-    }
-
-    protected Logger getLogger()
-    {
-        return log;
+        this.log = ( log != null ) ? log : NullLogger.INSTANCE;
+        buildStates = new HashMap<File, WeakReference<BuildState>>();
     }
 
     protected PathSetResolver getPathSetResolver()
@@ -53,7 +56,7 @@ public class DefaultBuildContextFactory
 
     protected MessageHandler getMessageHandler()
     {
-        return new DefaultMessageHandler( getLogger() );
+        return new DefaultMessageHandler( log );
     }
 
     protected OutputListener getOutputListener()
@@ -63,8 +66,68 @@ public class DefaultBuildContextFactory
 
     public BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId )
     {
-        return new DefaultBuildContext( outputDirectory, contextDirectory, pluginId, getPathSetResolver(),
-                                        getMessageHandler(), getOutputListener(), getLogger() );
+        BuildState buildState = getBuildState( outputDirectory, contextDirectory, pluginId );
+        return new DefaultBuildContext( outputDirectory, buildState, getPathSetResolver(), getMessageHandler(),
+                                        getOutputListener(), log );
+    }
+
+    protected BuildState getBuildState( File outputDirectory, File contextDirectory, String pluginId )
+    {
+        File stateFile = getStateFile( outputDirectory, contextDirectory, pluginId );
+
+        synchronized ( buildStates )
+        {
+            BuildState buildState = null;
+
+            WeakReference<BuildState> ref = buildStates.get( stateFile );
+            if ( ref != null )
+            {
+                buildState = ref.get();
+            }
+
+            purgeBuildStates();
+
+            if ( buildState == null )
+            {
+                try
+                {
+                    buildState = BuildState.load( stateFile );
+                }
+                catch ( IOException e )
+                {
+                    buildState = new BuildState( stateFile );
+                    if ( stateFile.isFile() )
+                    {
+                        log.warn( "Could not deserialize incremental build state from " + stateFile,
+                                  log.isDebugEnabled() ? e : null );
+                    }
+                }
+                buildStates.put( stateFile, new WeakReference<BuildState>( buildState ) );
+            }
+
+            return buildState;
+        }
+    }
+
+    private void purgeBuildStates()
+    {
+        for ( Iterator<Map.Entry<File, WeakReference<BuildState>>> it = buildStates.entrySet().iterator(); it.hasNext(); )
+        {
+            Map.Entry<File, WeakReference<BuildState>> entry = it.next();
+            if ( entry.getValue().get() == null )
+            {
+                it.remove();
+            }
+        }
+    }
+
+    protected File getStateFile( File outputDirectory, File contextDirectory, String pluginId )
+    {
+        String name = outputDirectory.getName();
+        name = name.substring( 0, Math.min( 4, name.length() ) ) + Integer.toHexString( name.hashCode() );
+        File workDir = new File( contextDirectory.getAbsolutePath(), name );
+        return new File( workDir, pluginId.substring( 0, Math.min( 4, pluginId.length() ) )
+            + Integer.toHexString( pluginId.hashCode() ) + ".ser" );
     }
 
     public Digester newDigester()

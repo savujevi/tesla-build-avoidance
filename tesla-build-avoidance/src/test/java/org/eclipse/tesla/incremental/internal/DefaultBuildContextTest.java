@@ -127,6 +127,8 @@ public class DefaultBuildContextTest
             }
         }
 
+        ( (DefaultBuildContextFactory) factory ).buildStates.clear();
+
         ctx = newContext();
         try
         {
