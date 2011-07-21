@@ -11,6 +11,7 @@ package org.eclipse.tesla.incremental.internal;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -95,15 +96,10 @@ public class DefaultBuildContextManager
         return new DefaultPathSetResolver();
     }
 
-    protected OutputListener getOutputListener()
-    {
-        return NullOutputListener.INSTANCE;
-    }
-
     public BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId )
     {
         BuildState buildState = getBuildState( outputDirectory, contextDirectory, pluginId );
-        return new DefaultBuildContext( this, outputDirectory, buildState, getPathSetResolver(), getOutputListener() );
+        return new DefaultBuildContext( this, outputDirectory, buildState, getPathSetResolver() );
     }
 
     protected BuildState getBuildState( File outputDirectory, File contextDirectory, String pluginId )
@@ -163,6 +159,11 @@ public class DefaultBuildContextManager
         File workDir = new File( contextDirectory.getAbsolutePath(), name );
         return new File( workDir, pluginId.substring( 0, Math.min( 4, pluginId.length() ) )
             + Integer.toHexString( pluginId.hashCode() ) + ".ser" );
+    }
+
+    protected void outputUpdated( Collection<File> outputs )
+    {
+        // defaults to noop, useful for refreshing of IDE
     }
 
 }

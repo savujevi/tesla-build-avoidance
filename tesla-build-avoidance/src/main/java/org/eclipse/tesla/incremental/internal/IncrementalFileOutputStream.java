@@ -38,7 +38,6 @@ class IncrementalFileOutputStream
         this.context = context;
         raf = new RandomAccessFile( file, "rw" );
         buffer = new byte[1024 * 16];
-        context.addOutput( file, true );
     }
 
     @Override
@@ -51,7 +50,7 @@ class IncrementalFileOutputStream
             modified = true;
             raf.setLength( pos );
         }
-        if ( !modified )
+        if ( !modified && context != null )
         {
             context.addOutput( file, false );
         }
