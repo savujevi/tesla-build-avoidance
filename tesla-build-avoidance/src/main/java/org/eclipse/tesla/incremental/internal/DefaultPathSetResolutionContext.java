@@ -28,25 +28,15 @@ class DefaultPathSetResolutionContext
 
     private final Selector selector;
 
-    // input -> (timestamp, size)
-    private final Map<File, FileState> inputStates;
-
-    // output -> input
-    private final Map<File, Collection<File>> inputs;
-
-    // input -> outputs
-    private final Map<File, Collection<File>> outputs;
+    private final BuildState buildState;
 
     public DefaultPathSetResolutionContext( BuildContext buildContext, PathSet pathSet, boolean fullBuild,
-                                            Map<File, FileState> inputStates, Map<File, Collection<File>> inputs,
-                                            Map<File, Collection<File>> outputs )
+                                            BuildState buildState )
     {
         this.outputDirectory = buildContext.getOutputDirectory();
         this.pathSet = pathSet;
         this.fullBuild = fullBuild;
-        this.inputStates = inputStates;
-        this.inputs = inputs;
-        this.outputs = outputs;
+        this.buildState = buildState;
 
         selector =
             new Selector( pathSet.getIncludes(), pathSet.getExcludes(), pathSet.isDefaultExcludes(),
@@ -86,28 +76,31 @@ class DefaultPathSetResolutionContext
         boolean includeFiles = pathSet.isIncludingFiles();
         boolean includeDirs = pathSet.isIncludingDirectories();
 
-        for ( Map.Entry<File, FileState> entry : inputStates.entrySet() )
+        synchronized ( buildState )
         {
-            if ( entry.getValue().isDirectory() )
+            for ( Map.Entry<File, FileState> entry : buildState.getInputStates().entrySet() )
             {
-                if ( !includeDirs )
+                if ( entry.getValue().isDirectory() )
                 {
-                    continue;
+                    if ( !includeDirs )
+                    {
+                        continue;
+                    }
                 }
-            }
-            else
-            {
-                if ( !includeFiles )
+                else
                 {
-                    continue;
+                    if ( !includeFiles )
+                    {
+                        continue;
+                    }
                 }
-            }
 
-            File file = entry.getKey();
-            String pathname = FileUtils.relativize( file, basedir );
-            if ( pathname != null && selector.isSelected( pathname ) && !existingInputs.contains( file ) )
-            {
-                pathnames.add( pathname );
+                File file = entry.getKey();
+                String pathname = FileUtils.relativize( file, basedir );
+                if ( pathname != null && selector.isSelected( pathname ) && !existingInputs.contains( file ) )
+                {
+                    pathnames.add( pathname );
+                }
             }
         }
 
@@ -118,38 +111,41 @@ class DefaultPathSetResolutionContext
     {
         Collection<String> pathnames = new ArrayList<String>( 64 );
 
-        Collection<File> inputs = this.inputs.get( outputFile );
-        if ( inputs != null && !inputs.isEmpty() )
+        synchronized ( buildState )
         {
-            File basedir = pathSet.getBasedir();
-            boolean includeFiles = pathSet.isIncludingFiles();
-            boolean includeDirs = pathSet.isIncludingDirectories();
-
-            for ( File file : inputs )
+            Collection<File> inputs = buildState.getInputs( outputFile );
+            if ( inputs != null && !inputs.isEmpty() )
             {
-                if ( file.isDirectory() )
-                {
-                    if ( !includeDirs )
-                    {
-                        continue;
-                    }
-                }
-                else if ( file.isFile() )
-                {
-                    if ( !includeFiles )
-                    {
-                        continue;
-                    }
-                }
-                else
-                {
-                    continue;
-                }
+                File basedir = pathSet.getBasedir();
+                boolean includeFiles = pathSet.isIncludingFiles();
+                boolean includeDirs = pathSet.isIncludingDirectories();
 
-                String pathname = FileUtils.relativize( file, basedir );
-                if ( pathname != null && selector.isSelected( pathname ) )
+                for ( File file : inputs )
                 {
-                    pathnames.add( pathname );
+                    if ( file.isDirectory() )
+                    {
+                        if ( !includeDirs )
+                        {
+                            continue;
+                        }
+                    }
+                    else if ( file.isFile() )
+                    {
+                        if ( !includeFiles )
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    String pathname = FileUtils.relativize( file, basedir );
+                    if ( pathname != null && selector.isSelected( pathname ) )
+                    {
+                        pathnames.add( pathname );
+                    }
                 }
             }
         }
@@ -163,40 +159,7 @@ class DefaultPathSetResolutionContext
         {
             return true;
         }
-        FileState previousState = inputStates.get( input );
-        if ( previousState == null )
-        {
-            return true;
-        }
-        if ( previousState.getTimestamp() != input.lastModified() )
-        {
-            return true;
-        }
-        if ( previousState.getSize() != input.length() )
-        {
-            return true;
-        }
-        if ( isOutputMissing( input ) )
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isOutputMissing( File input )
-    {
-        Collection<File> outputs = this.outputs.get( input );
-        if ( outputs != null )
-        {
-            for ( File output : outputs )
-            {
-                if ( !output.exists() )
-                {
-                    return true;
-                }
-            }
-        }
-        return outputs == null || outputs.isEmpty();
+        return buildState.isProcessingRequired( input );
     }
 
 }
