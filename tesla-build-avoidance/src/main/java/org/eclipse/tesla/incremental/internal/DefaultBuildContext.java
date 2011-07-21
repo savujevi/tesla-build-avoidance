@@ -204,6 +204,7 @@ class DefaultBuildContext
     public void finish()
     {
         modifiedOutputs.removeAll( unmodifiedOutputs );
+        int produced = modifiedOutputs.size();
 
         int deletedObsolete = 0;
         for ( Map.Entry<File, Collection<File>> entry : addedOutputs.entrySet() )
@@ -211,6 +212,7 @@ class DefaultBuildContext
             File input = entry.getKey();
             Collection<File> outputs = entry.getValue();
             Collection<File> obsoleteOutputs = buildState.setOutputs( input, outputs );
+            modifiedOutputs.addAll( obsoleteOutputs );
             deletedObsolete += deleteSuperfluousOutputs( obsoleteOutputs, "obsolete" );
         }
 
@@ -218,6 +220,7 @@ class DefaultBuildContext
         for ( File deletedInput : deletedInputs )
         {
             Collection<File> orphanedOutputs = buildState.removeInput( deletedInput );
+            modifiedOutputs.addAll( orphanedOutputs );
             deletedOrphaned += deleteSuperfluousOutputs( orphanedOutputs, "orphaned" );
         }
 
@@ -228,7 +231,7 @@ class DefaultBuildContext
         if ( log.isDebugEnabled() )
         {
             long millis = System.currentTimeMillis() - start;
-            log.debug( modifiedOutputs.size() + " outputs produced, " + deletedObsolete + " obsolete outputs deleted, "
+            log.debug( produced + " outputs produced, " + deletedObsolete + " obsolete outputs deleted, "
                 + deletedOrphaned + " orphaned outputs deleted, " + millis + " ms" );
         }
     }
