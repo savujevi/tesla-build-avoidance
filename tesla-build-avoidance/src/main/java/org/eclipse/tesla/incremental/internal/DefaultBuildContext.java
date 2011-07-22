@@ -82,6 +82,8 @@ class DefaultBuildContext
 
     public Digester newDigester()
     {
+        failIfFinished();
+
         return manager.newDigester();
     }
 
@@ -92,11 +94,15 @@ class DefaultBuildContext
 
     public boolean setConfiguration( PathSet paths, byte[] digest )
     {
+        failIfFinished();
+
         return buildState.setConfiguration( paths, digest );
     }
 
     public synchronized Collection<String> getInputs( PathSet paths, boolean fullBuild )
     {
+        failIfFinished();
+
         PathSetResolutionContext context = new DefaultPathSetResolutionContext( this, paths, fullBuild, buildState );
 
         Collection<String> inputs = new ArrayList<String>();
@@ -119,6 +125,8 @@ class DefaultBuildContext
     public OutputStream newOutputStream( File output )
         throws FileNotFoundException
     {
+        failIfFinished();
+
         output = FileUtils.resolve( output, null );
 
         return new IncrementalFileOutputStream( output, this );
@@ -126,6 +134,8 @@ class DefaultBuildContext
 
     public void addOutput( File input, File output )
     {
+        failIfFinished();
+
         if ( output != null )
         {
             addOutputs( Collections.singleton( output ), input );
@@ -134,6 +144,8 @@ class DefaultBuildContext
 
     public void addOutputs( File input, File... outputs )
     {
+        failIfFinished();
+
         if ( outputs != null && outputs.length > 0 )
         {
             addOutputs( Arrays.asList( outputs ), input );
@@ -142,6 +154,8 @@ class DefaultBuildContext
 
     public void addOutputs( File input, Collection<File> outputs )
     {
+        failIfFinished();
+
         addOutputs( outputs, input );
     }
 
@@ -195,6 +209,11 @@ class DefaultBuildContext
 
     public synchronized void finish()
     {
+        if ( reference.get() == null )
+        {
+            return;
+        }
+
         reference.clear();
 
         modifiedOutputs.removeAll( unmodifiedOutputs );
@@ -269,12 +288,24 @@ class DefaultBuildContext
 
     public void addMessage( File input, int line, int column, String message, int severity, Throwable cause )
     {
+        failIfFinished();
+
         manager.addMessage( input, line, column, message, severity, cause );
     }
 
     public void clearMessages( File input )
     {
+        failIfFinished();
+
         manager.clearMessages( input );
+    }
+
+    private void failIfFinished()
+    {
+        if ( reference.get() == null )
+        {
+            throw new IllegalStateException( "build context has already been finished" );
+        }
     }
 
 }

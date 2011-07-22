@@ -572,6 +572,22 @@ public class DefaultBuildContextTest
     }
 
     @Test
+    public void testFinish_FinishAgainIsHarmless()
+    {
+        BuildContext ctx = newContext();
+        ctx.finish();
+        ctx.finish();
+    }
+
+    @Test( expected = IllegalStateException.class )
+    public void testAddOutput_AfterFinishIsInvalid()
+    {
+        BuildContext ctx = newContext();
+        ctx.finish();
+        ctx.addOutput( inputDirectory, outputDirectory );
+    }
+
+    @Test
     public void testGetInputs_IncrementalBuildExcludesUnmodifiedFilesAndDirectories()
         throws Exception
     {
