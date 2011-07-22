@@ -11,6 +11,7 @@ package org.eclipse.tesla.incremental.internal;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +29,8 @@ class DefaultBuildContext
 {
 
     private final DefaultBuildContextManager manager;
+
+    final WeakReference<BuildContext> reference;
 
     private final Logger log;
 
@@ -59,6 +62,8 @@ class DefaultBuildContext
         {
             throw new IllegalArgumentException( "build state not specified" );
         }
+
+        reference = new WeakReference<BuildContext>( this );
 
         start = System.currentTimeMillis();
 
@@ -195,6 +200,8 @@ class DefaultBuildContext
 
     public void finish()
     {
+        reference.clear();
+
         modifiedOutputs.removeAll( unmodifiedOutputs );
         int produced = modifiedOutputs.size();
 

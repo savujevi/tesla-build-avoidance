@@ -9,6 +9,8 @@ package org.eclipse.tesla.incremental;
  *******************************************************************************/
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public interface BuildContextManager
 {
@@ -18,6 +20,11 @@ public interface BuildContextManager
     public static final int SEVERITY_ERROR = BuildContext.SEVERITY_ERROR;
 
     BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId );
+
+    void addOutputs( File input, File... outputs );
+
+    OutputStream newOutputStream( File output )
+        throws IOException;
 
     void addMessage( File input, int line, int column, String message, int severity, Throwable cause );
 
