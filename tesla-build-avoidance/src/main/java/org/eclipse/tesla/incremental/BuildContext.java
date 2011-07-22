@@ -53,7 +53,8 @@ public interface BuildContext
      * 
      * @param paths The path set to which the configuration applies, must not be {@code null}.
      * @param digest The fingerprint of the configuration, must not be {@code null}.
-     * @return {@code true} if the configuration has changed since the last build, {@code false} if not.
+     * @return {@code true} if the configuration has changed since the last build and a full rebuild should be done,
+     *         {@code false} if an incremental build is sufficient.
      */
     boolean setConfiguration( PathSet paths, byte[] digest );
 
