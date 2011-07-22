@@ -348,7 +348,9 @@ class DefaultDigester
 
     public byte[] finish()
     {
-        return digest.clone();
+        byte[] result = digest;
+        digest = digester.digest();
+        return result;
     }
 
     @Override

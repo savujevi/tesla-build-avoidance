@@ -174,4 +174,13 @@ public class DefaultDigesterTest
         assertArrayEquals( digest1, digest2 );
     }
 
+    @Test
+    public void testFinishResetsDigester()
+    {
+        Digester digester = newDigester();
+        byte[] digest1 = digester.string( "test" ).finish();
+        byte[] digest2 = digester.string( "test" ).finish();
+        assertArrayEquals( digest1, digest2 );
+    }
+
 }

@@ -154,7 +154,7 @@ public interface Digester
     Digester hashes( Map<?, ?> map );
 
     /**
-     * Finishes the fingerprinting.
+     * Finishes the fingerprinting and resets the digester.
      * 
      * @return The fingerprint of the configuration, never {@code null}.
      */
