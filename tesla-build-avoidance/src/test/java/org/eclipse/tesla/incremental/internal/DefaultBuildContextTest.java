@@ -240,10 +240,10 @@ public class DefaultBuildContextTest
     }
 
     @Test
-    public void testNewOutputStream_ResolvesPathnameRelativeToOutputDirectory()
+    public void testNewOutputStream_ResolvesPathnameRelativeToCurrentDirectory()
         throws Exception
     {
-        String name = "dir/subdir/file" + System.currentTimeMillis();
+        String name = "target/tests/dir/subdir/file" + System.currentTimeMillis();
         byte[] data = name.getBytes( "UTF-8" );
 
         BuildContext ctx = newContext();
@@ -258,7 +258,7 @@ public class DefaultBuildContextTest
             ctx.finish();
         }
 
-        File output = new File( outputDirectory, name );
+        File output = new File( name ).getAbsoluteFile();
         assertEquals( output.getAbsolutePath(), false, output.equals( new File( name ) ) );
 
         assertEquals( output.getAbsolutePath(), true, output.isFile() );

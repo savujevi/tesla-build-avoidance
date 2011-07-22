@@ -49,7 +49,7 @@ class BuildState
         {
             throw new IllegalArgumentException( "state file not specified" );
         }
-        this.stateFile = FileUtils.resolve( stateFile, null );
+        this.stateFile = stateFile;
 
         inputStates = new HashMap<File, FileState>( 256 );
         inputs = new HashMap<File, Collection<File>>( 256 );
@@ -65,7 +65,6 @@ class BuildState
     public static BuildState load( File stateFile )
         throws IOException
     {
-        stateFile = FileUtils.resolve( stateFile, null );
         FileInputStream is = new FileInputStream( stateFile );
         try
         {
@@ -157,8 +156,6 @@ class BuildState
 
         if ( input != null )
         {
-            input = FileUtils.resolve( input, null );
-
             inputStates.put( input, new FileState( input ) );
 
             Collection<File> outputsOfInput = new TreeSet<File>();
@@ -170,8 +167,6 @@ class BuildState
                 {
                     if ( output != null )
                     {
-                        output = FileUtils.resolve( output, null );
-
                         outputsOfInput.add( output );
 
                         Collection<File> inputsForOutput = inputs.get( output );
@@ -205,8 +200,6 @@ class BuildState
 
         if ( input != null )
         {
-            input = FileUtils.resolve( input, null );
-
             inputStates.remove( input );
 
             Collection<File> outputsOfInput = outputs.remove( input );
@@ -250,8 +243,6 @@ class BuildState
 
     public synchronized Collection<File> getInputs( File output )
     {
-        output = FileUtils.resolve( output, null );
-
         Collection<File> inputsForOutput = inputs.get( output );
         if ( inputsForOutput == null )
         {
@@ -262,8 +253,6 @@ class BuildState
 
     public synchronized Collection<File> getOutputs( File input )
     {
-        input = FileUtils.resolve( input, null );
-
         Collection<File> outputsOfInput = outputs.get( input );
         if ( outputsOfInput == null )
         {
@@ -274,8 +263,6 @@ class BuildState
 
     public synchronized FileState getInputState( File input )
     {
-        input = FileUtils.resolve( input, null );
-
         return inputStates.get( input );
     }
 
@@ -286,8 +273,6 @@ class BuildState
 
     public synchronized boolean isProcessingRequired( File input )
     {
-        input = FileUtils.resolve( input, null );
-
         FileState previousState = inputStates.get( input );
         if ( previousState == null )
         {

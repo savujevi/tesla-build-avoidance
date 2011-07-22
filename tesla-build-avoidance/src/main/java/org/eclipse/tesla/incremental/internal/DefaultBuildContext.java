@@ -69,7 +69,7 @@ class DefaultBuildContext
         start = System.currentTimeMillis();
 
         this.manager = manager;
-        this.outputDirectory = outputDirectory.getAbsoluteFile();
+        this.outputDirectory = outputDirectory;
         this.buildState = buildState;
         this.log = manager.log;
 
@@ -118,85 +118,66 @@ class DefaultBuildContext
     public OutputStream newOutputStream( File output )
         throws IOException
     {
-        if ( output == null )
-        {
-            throw new IllegalArgumentException( "output file not specified" );
-        }
-        output = FileUtils.resolve( output, getOutputDirectory() );
-        output.getParentFile().mkdirs();
-        addOutput( output, true );
-        return new IncrementalFileOutputStream( output, this );
-    }
+        output = FileUtils.resolve( output, null );
 
-    public OutputStream newOutputStream( String output )
-        throws IOException
-    {
-        if ( output == null )
-        {
-            throw new IllegalArgumentException( "output file not specified" );
-        }
-        return newOutputStream( new File( output ) );
+        return new IncrementalFileOutputStream( output, this );
     }
 
     public void addOutput( File input, File output )
     {
-        if ( output == null )
+        if ( output != null )
         {
-            return;
+            addOutputs( Collections.singleton( output ), input );
         }
-
-        File resolvedOutput = FileUtils.resolve( output, getOutputDirectory() );
-
-        addOutputs( Arrays.asList( resolvedOutput ), input );
     }
 
     public void addOutputs( File input, File... outputs )
     {
-        if ( outputs == null || outputs.length <= 0 )
+        if ( outputs != null && outputs.length > 0 )
         {
-            return;
+            addOutputs( Arrays.asList( outputs ), input );
         }
-
-        Collection<File> resolvedOutputs = new ArrayList<File>( outputs.length );
-        for ( File output : outputs )
-        {
-            File resolvedOutput = FileUtils.resolve( output, getOutputDirectory() );
-            resolvedOutputs.add( resolvedOutput );
-        }
-
-        addOutputs( resolvedOutputs, input );
     }
 
     public void addOutputs( File input, Collection<File> outputs )
+    {
+        addOutputs( outputs, input );
+    }
+
+    private void addOutputs( Collection<File> outputs, File input )
     {
         if ( outputs == null || outputs.isEmpty() )
         {
             return;
         }
 
-        Collection<File> resolvedOutputs = new ArrayList<File>( outputs.size() );
+        input = FileUtils.resolve( input, null );
+
+        Collection<File> addedOutputs = null;
+        if ( input != null )
+        {
+            addedOutputs = this.addedOutputs.get( input );
+            if ( addedOutputs == null )
+            {
+                addedOutputs = new TreeSet<File>();
+                this.addedOutputs.put( input, addedOutputs );
+            }
+        }
+
         for ( File output : outputs )
         {
-            File resolvedOutput = FileUtils.resolve( output, getOutputDirectory() );
-            resolvedOutputs.add( resolvedOutput );
+            if ( output != null )
+            {
+                output = FileUtils.resolve( output, null );
+
+                modifiedOutputs.add( output );
+
+                if ( addedOutputs != null )
+                {
+                    addedOutputs.add( output );
+                }
+            }
         }
-
-        addOutputs( resolvedOutputs, input );
-    }
-
-    private void addOutputs( Collection<File> outputs, File input )
-    {
-        input = input.getAbsoluteFile();
-
-        Collection<File> addedOutputs = this.addedOutputs.get( input );
-        if ( addedOutputs == null )
-        {
-            addedOutputs = new TreeSet<File>();
-            this.addedOutputs.put( input, addedOutputs );
-        }
-        addedOutputs.addAll( outputs );
-
-        modifiedOutputs.addAll( outputs );
     }
 
     void addOutput( File output, boolean modified )

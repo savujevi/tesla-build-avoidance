@@ -108,7 +108,6 @@ public class PathSet
             throw new IllegalStateException( "base directory for path set not specified" );
         }
         this.basedir = basedir.getAbsoluteFile();
-        this.kind = Kind.FILES_ONLY;
     }
 
     public PathSet( File basedir, String[] includes, String[] excludes )

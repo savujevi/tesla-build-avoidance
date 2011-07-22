@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -264,6 +263,8 @@ public class DefaultBuildContextManager
     {
         if ( output != null )
         {
+            output = FileUtils.resolve( output, null );
+
             BuildContext buildContext = getBuildContext( output );
             if ( buildContext != null )
             {
@@ -271,7 +272,7 @@ public class DefaultBuildContextManager
             }
             else
             {
-                outputUpdated( Arrays.asList( output ) );
+                outputUpdated( Collections.singleton( output ) );
             }
         }
     }
@@ -280,19 +281,26 @@ public class DefaultBuildContextManager
     {
         if ( outputs != null && outputs.length > 0 )
         {
-            Collection<File> updateOutputs = new HashSet<File>();
+            Collection<File> updateOutputs = new HashSet<File>( outputs.length );
+
             for ( File output : outputs )
             {
-                BuildContext buildContext = getBuildContext( output );
-                if ( buildContext != null )
+                if ( output != null )
                 {
-                    buildContext.addOutputs( input, output );
-                }
-                else
-                {
-                    updateOutputs.add( output );
+                    output = FileUtils.resolve( output, null );
+
+                    BuildContext buildContext = getBuildContext( output );
+                    if ( buildContext != null )
+                    {
+                        buildContext.addOutput( input, output );
+                    }
+                    else
+                    {
+                        updateOutputs.add( output );
+                    }
                 }
             }
+
             if ( !updateOutputs.isEmpty() )
             {
                 outputUpdated( updateOutputs );
@@ -304,19 +312,26 @@ public class DefaultBuildContextManager
     {
         if ( outputs != null && !outputs.isEmpty() )
         {
-            Collection<File> updateOutputs = new HashSet<File>();
+            Collection<File> updateOutputs = new HashSet<File>( outputs.size() );
+
             for ( File output : outputs )
             {
-                BuildContext buildContext = getBuildContext( output );
-                if ( buildContext != null )
+                if ( output != null )
                 {
-                    buildContext.addOutputs( input, output );
-                }
-                else
-                {
-                    updateOutputs.add( output );
+                    output = FileUtils.resolve( output, null );
+
+                    BuildContext buildContext = getBuildContext( output );
+                    if ( buildContext != null )
+                    {
+                        buildContext.addOutput( input, output );
+                    }
+                    else
+                    {
+                        updateOutputs.add( output );
+                    }
                 }
             }
+
             if ( !updateOutputs.isEmpty() )
             {
                 outputUpdated( updateOutputs );

@@ -34,10 +34,22 @@ class IncrementalFileOutputStream
     public IncrementalFileOutputStream( File file, DefaultBuildContext context )
         throws FileNotFoundException
     {
+        if ( file == null )
+        {
+            throw new IllegalArgumentException( "output file not specified" );
+        }
+        file.getParentFile().mkdirs();
+
         this.file = file;
         this.context = context;
+
         raf = new RandomAccessFile( file, "rw" );
         buffer = new byte[1024 * 16];
+
+        if ( context != null )
+        {
+            context.addOutput( file, true );
+        }
     }
 
     @Override
