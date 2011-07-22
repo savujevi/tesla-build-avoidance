@@ -87,7 +87,7 @@ public class IncrementalMojo
      * @parameter default-value="${project.build.directory}/incremental"
      * @readonly
      */
-    private File contextDirectory;
+    private File stateDirectory;
 
     /**
      * @component
@@ -100,7 +100,7 @@ public class IncrementalMojo
         throws MojoExecutionException
     {
         // get build context for the output directory
-        BuildContext context = contextManager.newContext( outputDirectory, contextDirectory, pluginId );
+        BuildContext context = contextManager.newContext( outputDirectory, stateDirectory, pluginId );
 
         try
         {

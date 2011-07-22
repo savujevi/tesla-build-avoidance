@@ -9,6 +9,7 @@ package org.eclipse.tesla.incremental.internal;
  *******************************************************************************/
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
@@ -72,7 +73,7 @@ public class DefaultBuildContextManager
 
     public void addMessage( File input, int line, int column, String message, int severity, Throwable cause )
     {
-        String msg = getMessage( input, line, column, message );
+        String msg = getMessage( input, line, column, message, cause );
         switch ( severity )
         {
             case BuildContext.SEVERITY_WARNING:
@@ -87,7 +88,7 @@ public class DefaultBuildContextManager
         }
     }
 
-    protected String getMessage( File file, int line, int column, String message )
+    protected String getMessage( File file, int line, int column, String message, Throwable cause )
     {
         StringBuilder sb = new StringBuilder( 256 );
         sb.append( file.getAbsolutePath() );
@@ -103,6 +104,17 @@ public class DefaultBuildContextManager
             sb.append( "]" );
         }
         sb.append( ": " );
+        if ( message == null )
+        {
+            if ( cause != null )
+            {
+                message = cause.getMessage();
+                if ( message == null )
+                {
+                    message = cause.toString();
+                }
+            }
+        }
         sb.append( message );
         return sb.toString();
     }
@@ -112,10 +124,10 @@ public class DefaultBuildContextManager
         // defaults to noop
     }
 
-    public BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId )
+    public BuildContext newContext( File outputDirectory, File stateDirectory, String pluginId )
     {
         outputDirectory = FileUtils.resolve( outputDirectory, null );
-        BuildState buildState = getBuildState( outputDirectory, contextDirectory, pluginId );
+        BuildState buildState = getBuildState( outputDirectory, stateDirectory, pluginId );
         DefaultBuildContext context = new DefaultBuildContext( this, outputDirectory, buildState );
         buildContexts.get().put( outputDirectory, context.reference );
         return context;
@@ -126,9 +138,9 @@ public class DefaultBuildContextManager
         return new DefaultDigester();
     }
 
-    private BuildState getBuildState( File outputDirectory, File contextDirectory, String pluginId )
+    private BuildState getBuildState( File outputDirectory, File stateDirectory, String pluginId )
     {
-        File stateFile = getStateFile( outputDirectory, contextDirectory, pluginId );
+        File stateFile = getStateFile( outputDirectory, stateDirectory, pluginId );
 
         synchronized ( buildStates )
         {
@@ -176,11 +188,11 @@ public class DefaultBuildContextManager
         }
     }
 
-    protected File getStateFile( File outputDirectory, File contextDirectory, String pluginId )
+    protected File getStateFile( File outputDirectory, File stateDirectory, String pluginId )
     {
         String name = outputDirectory.getName();
         name = name.substring( 0, Math.min( 4, name.length() ) ) + Integer.toHexString( name.hashCode() );
-        File workDir = new File( contextDirectory.getAbsolutePath(), name );
+        File workDir = new File( stateDirectory.getAbsolutePath(), name );
         return new File( workDir, pluginId.substring( 0, Math.min( 4, pluginId.length() ) )
             + Integer.toHexString( pluginId.hashCode() ) + ".ser" );
     }
@@ -340,7 +352,7 @@ public class DefaultBuildContextManager
     }
 
     public OutputStream newOutputStream( File output )
-        throws IOException
+        throws FileNotFoundException
     {
         output = FileUtils.resolve( output, null );
 

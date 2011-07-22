@@ -9,7 +9,7 @@ package org.eclipse.tesla.incremental;
  *******************************************************************************/
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.OutputStream;
 import java.util.Collection;
 
@@ -30,7 +30,7 @@ public interface BuildContext
     Collection<String> getInputs( PathSet paths, boolean fullBuild );
 
     OutputStream newOutputStream( File output )
-        throws IOException;
+        throws FileNotFoundException;
 
     void addOutput( File input, File output );
 

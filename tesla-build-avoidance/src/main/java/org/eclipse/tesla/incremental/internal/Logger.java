@@ -9,7 +9,6 @@ package org.eclipse.tesla.incremental.internal;
  *******************************************************************************/
 
 /**
- * A simple logger to facilitate emission of diagnostic messages.
  */
 public interface Logger
 {

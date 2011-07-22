@@ -9,6 +9,7 @@ package org.eclipse.tesla.incremental.internal;
  *******************************************************************************/
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
@@ -116,7 +117,7 @@ class DefaultBuildContext
     }
 
     public OutputStream newOutputStream( File output )
-        throws IOException
+        throws FileNotFoundException
     {
         output = FileUtils.resolve( output, null );
 
