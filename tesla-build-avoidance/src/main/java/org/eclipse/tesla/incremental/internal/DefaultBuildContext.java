@@ -39,15 +39,15 @@ class DefaultBuildContext
 
     private final BuildState buildState;
 
-    private Collection<File> deletedInputs;
+    private final Collection<File> deletedInputs;
 
-    private Map<File, Collection<File>> addedOutputs;
+    private final Map<File, Collection<File>> addedOutputs;
 
-    private Collection<File> modifiedOutputs;
+    private final Collection<File> modifiedOutputs;
 
-    private Collection<File> unmodifiedOutputs;
+    private final Collection<File> unmodifiedOutputs;
 
-    private long start;
+    private final long start;
 
     public DefaultBuildContext( DefaultBuildContextManager manager, File outputDirectory, BuildState buildState )
     {
@@ -94,7 +94,7 @@ class DefaultBuildContext
         return buildState.setConfiguration( paths, digest );
     }
 
-    public Collection<String> getInputs( PathSet paths, boolean fullBuild )
+    public synchronized Collection<String> getInputs( PathSet paths, boolean fullBuild )
     {
         PathSetResolutionContext context = new DefaultPathSetResolutionContext( this, paths, fullBuild, buildState );
 
@@ -144,7 +144,7 @@ class DefaultBuildContext
         addOutputs( outputs, input );
     }
 
-    private void addOutputs( Collection<File> outputs, File input )
+    private synchronized void addOutputs( Collection<File> outputs, File input )
     {
         if ( outputs == null || outputs.isEmpty() )
         {
@@ -180,7 +180,7 @@ class DefaultBuildContext
         }
     }
 
-    void addOutput( File output, boolean modified )
+    synchronized void addOutput( File output, boolean modified )
     {
         if ( modified )
         {
@@ -192,7 +192,7 @@ class DefaultBuildContext
         }
     }
 
-    public void finish()
+    public synchronized void finish()
     {
         reference.clear();
 
