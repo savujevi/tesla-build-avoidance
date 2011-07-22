@@ -37,9 +37,17 @@ import java.util.Collection;
  *     buildContext.finish();
  * }
  * </pre>
+ * 
+ * Some methods are provided both via {@link BuildContextManager} and {@link BuildContext}. For efficiency, those
+ * methods should be invoked via a {@link BuildContext} instance when possible. The equivalent methods in
+ * {@link BuildContextManager} are only provided for cases when a component has no direct access to a
+ * {@link BuildContext} instance, e.g. due to API constraints, but still should participate in an active build context
+ * that has been created by a component higher up in the call hierarchy.
  */
 public interface BuildContextManager
 {
+
+    // NOTE: The following constants are duplicated here for more convenient API use.
 
     /**
      * Message severity to report a warning for an input file.
@@ -115,7 +123,7 @@ public interface BuildContextManager
      * 
      * @param output The output file to open the stream to, must not be {@code null}.
      * @return The new output stream, never {@code null}.
-     * @throws IOException If the file could not be opened
+     * @throws FileNotFoundException If the file could not be opened.
      */
     OutputStream newOutputStream( File output )
         throws FileNotFoundException;
