@@ -249,7 +249,7 @@ public class DefaultBuildContextTest
         BuildContext ctx = newContext();
         try
         {
-            OutputStream os = ctx.newOutputStream( name );
+            OutputStream os = ctx.newOutputStream( new File( name ) );
             os.write( data );
             os.close();
         }
@@ -292,15 +292,14 @@ public class DefaultBuildContextTest
         BuildContext ctx = newContext();
         try
         {
-            String filename = "test.txt";
+            File output = new File( outputDirectory, "test.txt" );
 
-            OutputStream os = ctx.newOutputStream( filename );
+            OutputStream os = ctx.newOutputStream( output );
             os.write( "Hello".getBytes( "UTF-8" ) );
             os.write( " World!".getBytes( "UTF-8" ) );
             os.write( '\n' );
             os.close();
 
-            File output = new File( outputDirectory, filename );
             byte[] data = Utils.readBytes( output );
             assertArrayEquals( "Hello World!\n".getBytes( "UTF-8" ), data );
 
@@ -308,7 +307,7 @@ public class DefaultBuildContextTest
             assertTrue( output.setLastModified( timestamp ) );
             timestamp = output.lastModified();
 
-            os = ctx.newOutputStream( filename );
+            os = ctx.newOutputStream( output );
             os.write( 'H' );
             os.write( "ello World!\n".getBytes( "UTF-8" ) );
             os.close();
@@ -317,7 +316,7 @@ public class DefaultBuildContextTest
             data = Utils.readBytes( output );
             assertArrayEquals( "Hello World!\n".getBytes( "UTF-8" ), data );
 
-            os = ctx.newOutputStream( filename );
+            os = ctx.newOutputStream( output );
             os.write( 'h' );
             os.write( "ello".getBytes( "UTF-8" ) );
             os.close();
@@ -329,7 +328,7 @@ public class DefaultBuildContextTest
             assertTrue( output.setLastModified( timestamp ) );
             timestamp = output.lastModified();
 
-            os = ctx.newOutputStream( filename );
+            os = ctx.newOutputStream( output );
             os.write( "Hello world!".getBytes( "UTF-8" ) );
             os.close();
 

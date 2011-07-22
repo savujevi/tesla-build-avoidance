@@ -11,6 +11,7 @@ package org.eclipse.tesla.incremental;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
 
 public interface BuildContextManager
 {
@@ -21,7 +22,11 @@ public interface BuildContextManager
 
     BuildContext newContext( File outputDirectory, File contextDirectory, String pluginId );
 
+    void addOutput( File input, File output );
+
     void addOutputs( File input, File... outputs );
+
+    void addOutputs( File input, Collection<File> outputs );
 
     OutputStream newOutputStream( File output )
         throws IOException;

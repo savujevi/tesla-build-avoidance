@@ -32,12 +32,11 @@ public interface BuildContext
     OutputStream newOutputStream( File output )
         throws IOException;
 
-    OutputStream newOutputStream( String output )
-        throws IOException;
+    void addOutput( File input, File output );
 
     void addOutputs( File input, File... outputs );
 
-    void addOutputs( File input, String... outputs );
+    void addOutputs( File input, Collection<File> outputs );
 
     void addMessage( File input, int line, int column, String message, int severity, Throwable cause );
 

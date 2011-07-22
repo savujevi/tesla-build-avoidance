@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -219,7 +220,7 @@ public class DefaultBuildContextManager
     }
 
     private void scan( Collection<File> selectedFiles, Collection<Path> paths, File dir, String pathPrefix,
-                         String[] files, PathSetResolutionContext context )
+                       String[] files, PathSetResolutionContext context )
     {
         boolean includeDirs = context.getPathSet().isIncludingDirectories();
         boolean includeFiles = context.getPathSet().isIncludingFiles();
@@ -259,9 +260,49 @@ public class DefaultBuildContextManager
         }
     }
 
+    public void addOutput( File input, File output )
+    {
+        if ( output != null )
+        {
+            BuildContext buildContext = getBuildContext( output );
+            if ( buildContext != null )
+            {
+                buildContext.addOutput( input, output );
+            }
+            else
+            {
+                outputUpdated( Arrays.asList( output ) );
+            }
+        }
+    }
+
     public void addOutputs( File input, File... outputs )
     {
         if ( outputs != null && outputs.length > 0 )
+        {
+            Collection<File> updateOutputs = new HashSet<File>();
+            for ( File output : outputs )
+            {
+                BuildContext buildContext = getBuildContext( output );
+                if ( buildContext != null )
+                {
+                    buildContext.addOutputs( input, output );
+                }
+                else
+                {
+                    updateOutputs.add( output );
+                }
+            }
+            if ( !updateOutputs.isEmpty() )
+            {
+                outputUpdated( updateOutputs );
+            }
+        }
+    }
+
+    public void addOutputs( File input, Collection<File> outputs )
+    {
+        if ( outputs != null && !outputs.isEmpty() )
         {
             Collection<File> updateOutputs = new HashSet<File>();
             for ( File output : outputs )

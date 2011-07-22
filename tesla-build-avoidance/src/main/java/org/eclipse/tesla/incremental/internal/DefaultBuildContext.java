@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -137,6 +138,18 @@ class DefaultBuildContext
         return newOutputStream( new File( output ) );
     }
 
+    public void addOutput( File input, File output )
+    {
+        if ( output == null )
+        {
+            return;
+        }
+
+        File resolvedOutput = FileUtils.resolve( output, getOutputDirectory() );
+
+        addOutputs( Arrays.asList( resolvedOutput ), input );
+    }
+
     public void addOutputs( File input, File... outputs )
     {
         if ( outputs == null || outputs.length <= 0 )
@@ -154,17 +167,17 @@ class DefaultBuildContext
         addOutputs( resolvedOutputs, input );
     }
 
-    public void addOutputs( File input, String... outputs )
+    public void addOutputs( File input, Collection<File> outputs )
     {
-        if ( outputs == null || outputs.length <= 0 )
+        if ( outputs == null || outputs.isEmpty() )
         {
             return;
         }
 
-        Collection<File> resolvedOutputs = new ArrayList<File>( outputs.length );
-        for ( String output : outputs )
+        Collection<File> resolvedOutputs = new ArrayList<File>( outputs.size() );
+        for ( File output : outputs )
         {
-            File resolvedOutput = FileUtils.resolve( new File( output ), getOutputDirectory() );
+            File resolvedOutput = FileUtils.resolve( output, getOutputDirectory() );
             resolvedOutputs.add( resolvedOutput );
         }
 
