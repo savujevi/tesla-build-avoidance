@@ -219,7 +219,10 @@ class DefaultBuildContext
 
         save();
 
-        manager.outputUpdated( modifiedOutputs );
+        if ( !modifiedOutputs.isEmpty() )
+        {
+            manager.outputUpdated( modifiedOutputs );
+        }
 
         if ( log.isDebugEnabled() )
         {
