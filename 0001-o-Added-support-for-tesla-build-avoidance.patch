@@ -1,0 +1,276 @@
+From fcc5b0889706319790925aa32b7a3307dfa9537e Mon Sep 17 00:00:00 2001
+From: Benjamin Bentmann <bentmann@sonatype.com>
+Date: Fri, 22 Jul 2011 15:28:19 +0200
+Subject: [PATCH] o Added support for tesla-build-avoidance
+
+---
+ .../embedder/DefaultMavenComponentContributor.java |    3 +
+ .../embedder/EclipseBuildContextManager.java       |  118 ++++++++++++++++++++
+ .../embedder/EclipseClassRealmManagerDelegate.java |   36 ++++++
+ org.eclipse.m2e.maven.runtime/META-INF/MANIFEST.MF |    4 +-
+ org.eclipse.m2e.maven.runtime/update-jars-pom.xml  |    6 +
+ 5 files changed, 166 insertions(+), 1 deletions(-)
+ create mode 100644 org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/EclipseBuildContextManager.java
+
+diff --git a/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/DefaultMavenComponentContributor.java b/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/DefaultMavenComponentContributor.java
+index 7948a49..02a5242 100644
+--- a/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/DefaultMavenComponentContributor.java
++++ b/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/DefaultMavenComponentContributor.java
+@@ -11,6 +11,8 @@
+ 
+ package org.eclipse.m2e.core.internal.embedder;
+ 
++import org.eclipse.tesla.incremental.BuildContextManager;
++
+ import org.apache.maven.classrealm.ClassRealmManagerDelegate;
+ import org.apache.maven.plugin.internal.PluginDependenciesResolver;
+ import org.apache.maven.project.artifact.MavenMetadataCache;
+@@ -31,6 +33,7 @@ public class DefaultMavenComponentContributor implements IMavenComponentContribu
+     binder.bind(ClassRealmManagerDelegate.class, EclipseClassRealmManagerDelegate.class, EclipseClassRealmManagerDelegate.ROLE_HINT);
+     binder.bind(RepositoryListener.class, EclipseRepositoryListener.class, EclipseRepositoryListener.ROLE_HINT);
+     binder.bind(ContextRepositorySystemSession.class, ContextRepositorySystemSessionImpl.class, null);
++    binder.bind(BuildContextManager.class, EclipseBuildContextManager.class, null);
+   }
+ 
+ }
+diff --git a/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/EclipseBuildContextManager.java b/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/EclipseBuildContextManager.java
+new file mode 100644
+index 0000000..c933faa
+--- /dev/null
++++ b/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/EclipseBuildContextManager.java
+@@ -0,0 +1,118 @@
++/*******************************************************************************
++ * Copyright (c) 2010 Sonatype, Inc.
++ * All rights reserved. This program and the accompanying materials
++ * are made available under the terms of the Eclipse Public License v1.0
++ * which accompanies this distribution, and is available at
++ * http://www.eclipse.org/legal/epl-v10.html
++ *
++ * Contributors:
++ *      Sonatype, Inc. - initial API and implementation
++ *******************************************************************************/
++
++package org.eclipse.m2e.core.internal.embedder;
++
++import java.io.File;
++import java.util.ArrayList;
++import java.util.Collection;
++
++import com.google.inject.Singleton;
++
++import org.eclipse.tesla.incremental.BuildContextManager;
++import org.eclipse.tesla.incremental.PathSet;
++import org.eclipse.tesla.incremental.internal.DefaultBuildContextManager;
++import org.eclipse.tesla.incremental.internal.Path;
++import org.eclipse.tesla.incremental.internal.PathSetResolutionContext;
++
++import org.codehaus.plexus.component.annotations.Component;
++import org.codehaus.plexus.component.annotations.Requirement;
++import org.codehaus.plexus.util.Scanner;
++
++import org.sonatype.plexus.build.incremental.BuildContext;
++
++
++/**
++ */
++@Singleton
++@Component(role = BuildContextManager.class)
++public class EclipseBuildContextManager extends DefaultBuildContextManager {
++
++  @Requirement
++  private BuildContext buildContext;
++
++  protected void outputUpdated(Collection<File> outputs) {
++    for(File output : outputs) {
++      buildContext.refresh(output);
++    }
++  }
++
++  public void addMessage(File input, int line, int column, String message, int severity, Throwable cause) {
++    buildContext.addMessage(input, line, column, message, severity, cause);
++  }
++
++  public void clearMessages(File input) {
++    buildContext.removeMessages(input);
++  }
++
++  protected Collection<Path> resolve(PathSetResolutionContext context) {
++    Collection<Path> paths = new ArrayList<Path>();
++
++    PathSet pathSet = context.getPathSet();
++    Scanner scanner = buildContext.newScanner(pathSet.getBasedir(), context.isFullBuild());
++    scanner.setIncludes(toArray(pathSet.getIncludes()));
++    scanner.setExcludes(toArray(pathSet.getExcludes()));
++    if(pathSet.isDefaultExcludes()) {
++      scanner.addDefaultExcludes();
++    }
++    scanner.scan();
++
++    if(pathSet.isIncludingDirectories()) {
++      for(String path : scanner.getIncludedDirectories()) {
++        paths.add(new Path(path));
++      }
++    }
++    if(pathSet.isIncludingFiles()) {
++      for(String path : scanner.getIncludedFiles()) {
++        paths.add(new Path(path));
++      }
++    }
++
++    scanner = buildContext.newDeleteScanner(pathSet.getBasedir());
++    scanner.setIncludes(toArray(pathSet.getIncludes()));
++    scanner.setExcludes(toArray(pathSet.getExcludes()));
++    if(pathSet.isDefaultExcludes()) {
++      scanner.addDefaultExcludes();
++    }
++    scanner.scan();
++
++    if(pathSet.isIncludingDirectories()) {
++      for(String path : scanner.getIncludedDirectories()) {
++        paths.add(new Path(path, true));
++      }
++    }
++    if(pathSet.isIncludingFiles()) {
++      for(String path : scanner.getIncludedFiles()) {
++        paths.add(new Path(path, true));
++      }
++    }
++
++    if(!context.isFullBuild()) {
++      scanner = buildContext.newDeleteScanner(context.getOutputDirectory());
++      scanner.scan();
++      for(String path : scanner.getIncludedFiles()) {
++        for(String input : context.getInputPaths(new File(context.getOutputDirectory(), path))) {
++          paths.add(new Path(input));
++        }
++      }
++    }
++
++    return paths;
++  }
++
++  private String[] toArray(Collection<String> strings) {
++    if(strings.isEmpty()) {
++      return null;
++    }
++    return strings.toArray(new String[strings.size()]);
++  }
++
++}
+diff --git a/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/EclipseClassRealmManagerDelegate.java b/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/EclipseClassRealmManagerDelegate.java
+index b623d1e..a89cebd 100644
+--- a/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/EclipseClassRealmManagerDelegate.java
++++ b/org.eclipse.m2e.core/src/org/eclipse/m2e/core/internal/embedder/EclipseClassRealmManagerDelegate.java
+@@ -44,8 +44,11 @@ public class EclipseClassRealmManagerDelegate implements ClassRealmManagerDelega
+ 
+   private final ArtifactVersion currentBuildApiVersion;
+ 
++  private final ArtifactVersion currentBuildAvoidanceVersion;
++
+   public EclipseClassRealmManagerDelegate() {
+     Properties props = new Properties();
++
+     InputStream is = getClass().getResourceAsStream("/org/sonatype/plexus/build/incremental/version.properties"); //$NON-NLS-1$
+     if(is != null) {
+       try {
+@@ -55,6 +58,17 @@ public class EclipseClassRealmManagerDelegate implements ClassRealmManagerDelega
+       }
+     }
+     currentBuildApiVersion = new DefaultArtifactVersion(props.getProperty("api.version", "0.0.5")); //$NON-NLS-1$ //$NON-NLS-2$
++
++    props.clear();
++    is = getClass().getResourceAsStream("/org/eclipse/tesla/incremental/version.properties"); //$NON-NLS-1$
++    if(is != null) {
++      try {
++        props.load(is);
++      } catch(IOException e) {
++        e.printStackTrace();
++      }
++    }
++    currentBuildAvoidanceVersion = new DefaultArtifactVersion(props.getProperty("api.version", "0.0.5")); //$NON-NLS-1$ //$NON-NLS-2$
+   }
+ 
+   public void setupRealm(ClassRealm realm, ClassRealmRequest request) {
+@@ -66,6 +80,11 @@ public class EclipseClassRealmManagerDelegate implements ClassRealmManagerDelega
+ 
+       realm.importFrom(coreRealm, "org.sonatype.plexus.build.incremental"); //$NON-NLS-1$
+     }
++    if(supportsBuildAvoidance(request.getConstituents())) {
++      ClassRealm coreRealm = plexus.getContainerRealm();
++
++      realm.importFrom(coreRealm, "org.eclipse.tesla.incremental"); //$NON-NLS-1$
++    }
+   }
+ 
+   private boolean supportsBuildApi(List<ClassRealmConstituent> constituents) {
+@@ -85,4 +104,21 @@ public class EclipseClassRealmManagerDelegate implements ClassRealmManagerDelega
+     return false;
+   }
+ 
++  private boolean supportsBuildAvoidance(List<ClassRealmConstituent> constituents) {
++    for(Iterator<ClassRealmConstituent> it = constituents.iterator(); it.hasNext();) {
++      ClassRealmConstituent constituent = it.next();
++      if("org.sonatype.tesla".equals(constituent.getGroupId()) //$NON-NLS-1$
++          && "tesla-build-avoidance".equals(constituent.getArtifactId())) { //$NON-NLS-1$
++        ArtifactVersion version = new DefaultArtifactVersion(constituent.getVersion());
++        boolean compatible = currentBuildAvoidanceVersion.compareTo(version) >= 0;
++        if(compatible) {
++          // removing the JAR from the plugin realm to prevent discovery of the DefaultBuildContextManager
++          it.remove();
++        }
++        return compatible;
++      }
++    }
++    return false;
++  }
++
+ }
+diff --git a/org.eclipse.m2e.maven.runtime/META-INF/MANIFEST.MF b/org.eclipse.m2e.maven.runtime/META-INF/MANIFEST.MF
+index 218957b..fbe6e07 100644
+--- a/org.eclipse.m2e.maven.runtime/META-INF/MANIFEST.MF
++++ b/org.eclipse.m2e.maven.runtime/META-INF/MANIFEST.MF
+@@ -95,7 +95,8 @@ Export-Package: org.codehaus.plexus.component.factory,org.sonatype.aet
+  plexus.component.annotations,org.apache.maven.artifact,org.apache.mav
+  en.eventspy.internal,org.sonatype.aether.resolution,com.google.inject
+  .binder,com.google.inject.util,org.apache.maven.plugin,org.apache.mav
+- en.settings.building
++ en.settings.building,org.eclipse.tesla.incremental,org.eclipse.tesla.
++ incremental.internal
+ Bundle-Vendor: Eclipse.org - m2e
+ Bundle-ClassPath: local-patches.jar,
+  jars/maven-embedder-3.0.2.jar,
+@@ -132,6 +133,7 @@ Bundle-ClassPath: local-patches.jar,
+  jars/plexus-utils-2.0.6.jar,
+  jars/sisu-guice-2.9.4-no_aop.jar,
+  jars/plexus-build-api-0.0.7.jar,
++ jars/tesla-build-avoidance-1.0-SNAPSHOT.jar,
+  jars/aether-connector-wagon-1.11.jar,
+  jars/aether-api-1.11.jar,
+  jars/aether-spi-1.11.jar,
+diff --git a/org.eclipse.m2e.maven.runtime/update-jars-pom.xml b/org.eclipse.m2e.maven.runtime/update-jars-pom.xml
+index 813cfb9..5449c0e 100644
+--- a/org.eclipse.m2e.maven.runtime/update-jars-pom.xml
++++ b/org.eclipse.m2e.maven.runtime/update-jars-pom.xml
+@@ -34,6 +34,7 @@
+     <sisu-guice.version>2.9.4</sisu-guice.version>
+ 
+     <!-- below are m2e-specific addons -->
++    <tesla-build-avoidance.version>1.0-SNAPSHOT</tesla-build-avoidance.version>
+     <plexus-build-api.version>0.0.7</plexus-build-api.version>
+     <wagon-ahc.version>1.2.0</wagon-ahc.version>
+ 
+@@ -89,6 +90,11 @@
+     </dependency>
+ 
+     <dependency>
++      <groupId>org.sonatype.tesla</groupId>
++      <artifactId>tesla-build-avoidance</artifactId>
++      <version>${tesla-build-avoidance.version}</version>
++    </dependency>
++    <dependency>
+       <groupId>org.sonatype.plexus</groupId>
+       <artifactId>plexus-build-api</artifactId>
+       <version>${plexus-build-api.version}</version>
+-- 
+1.7.3.1.msysgit.0
+
