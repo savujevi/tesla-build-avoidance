@@ -103,7 +103,7 @@ class DefaultBuildContext
     {
         failIfFinished();
 
-        PathSetResolutionContext context = new DefaultPathSetResolutionContext( this, paths, fullBuild, buildState );
+        InputResolutionContext context = new DefaultInputResolutionContext( this, paths, fullBuild, buildState );
 
         Collection<String> inputs = new ArrayList<String>();
 

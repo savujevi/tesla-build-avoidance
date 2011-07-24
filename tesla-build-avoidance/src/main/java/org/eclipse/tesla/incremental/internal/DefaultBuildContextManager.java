@@ -202,7 +202,7 @@ public class DefaultBuildContextManager
         // defaults to noop, useful for refreshing of IDE
     }
 
-    protected Collection<Path> resolve( PathSetResolutionContext context )
+    protected Collection<Path> resolve( InputResolutionContext context )
     {
         Collection<Path> dirtyPaths = new ArrayList<Path>();
         Collection<File> selectedFiles = new HashSet<File>();
@@ -231,7 +231,7 @@ public class DefaultBuildContextManager
     }
 
     private void scan( Collection<File> selectedFiles, Collection<Path> paths, File dir, String pathPrefix,
-                       String[] files, PathSetResolutionContext context )
+                       String[] files, InputResolutionContext context )
     {
         boolean includeDirs = context.getPathSet().isIncludingDirectories();
         boolean includeFiles = context.getPathSet().isIncludingFiles();

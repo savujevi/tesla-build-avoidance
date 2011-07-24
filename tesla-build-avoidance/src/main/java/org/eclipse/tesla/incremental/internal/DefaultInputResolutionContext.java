@@ -16,8 +16,8 @@ import java.util.Map;
 import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.PathSet;
 
-class DefaultPathSetResolutionContext
-    implements PathSetResolutionContext
+class DefaultInputResolutionContext
+    implements InputResolutionContext
 {
 
     private final File outputDirectory;
@@ -30,7 +30,7 @@ class DefaultPathSetResolutionContext
 
     private final BuildState buildState;
 
-    public DefaultPathSetResolutionContext( BuildContext buildContext, PathSet pathSet, boolean fullBuild,
+    public DefaultInputResolutionContext( BuildContext buildContext, PathSet pathSet, boolean fullBuild,
                                             BuildState buildState )
     {
         this.outputDirectory = buildContext.getOutputDirectory();

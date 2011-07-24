@@ -28,8 +28,8 @@ import java.util.Collection;
  *     {
  *         File inputFile = new File( inputDir, inputPath );
  *         File outputFile = new File( outputDir, inputPath );
- *         buildContext.addOutput( inputFile, outputFile );
  *         // actually produce output file
+ *         buildContext.addOutput( inputFile, outputFile );
  *     }
  * }
  * finally

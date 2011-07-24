@@ -13,7 +13,7 @@ import java.util.Collection;
 
 import org.eclipse.tesla.incremental.PathSet;
 
-public interface PathSetResolutionContext
+public interface InputResolutionContext
 {
 
     File getOutputDirectory();
