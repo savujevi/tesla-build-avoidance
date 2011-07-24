@@ -17,9 +17,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
- * Describes a collection of files/directories to be processed as inputs. Path sets are rooted at some base directory
- * from which files/directories are selected via <a href="http://ant.apache.org/manual/dirtasks.html#patterns">glob-like
- * include/exclude patterns</a>.
+ * Describes a collection of files/directories. Path sets are rooted at some base directory from which files/directories
+ * are selected via <a href="http://ant.apache.org/manual/dirtasks.html#patterns">glob-like include/exclude
+ * patterns</a>.
  */
 public class PathSet
     implements Serializable
@@ -66,7 +66,7 @@ public class PathSet
      * Creates a path set that includes only the specified file.
      * 
      * @param file The file to wrap into a path set, may be {@code null}.
-     * @return The resulting path set or {@code null} if the input file was {@code null}.
+     * @return The resulting path set or {@code null} if the specified file was {@code null}.
      */
     public static PathSet fromFile( File file )
     {
