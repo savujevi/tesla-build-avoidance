@@ -126,10 +126,26 @@ public class DefaultBuildContextManager
 
     public BuildContext newContext( File outputDirectory, File stateDirectory, String pluginId )
     {
+        if ( outputDirectory == null )
+        {
+            throw new IllegalArgumentException( "output directory not specified" );
+        }
+        if ( stateDirectory == null )
+        {
+            throw new IllegalArgumentException( "build state directory not specified" );
+        }
+        if ( pluginId == null )
+        {
+            throw new IllegalArgumentException( "plugin identifier not specified" );
+        }
+
         outputDirectory = FileUtils.resolve( outputDirectory, null );
+
         BuildState buildState = getBuildState( outputDirectory, stateDirectory, pluginId );
+
         DefaultBuildContext context = new DefaultBuildContext( this, outputDirectory, buildState );
         buildContexts.get().put( outputDirectory, context.reference );
+
         return context;
     }
 
