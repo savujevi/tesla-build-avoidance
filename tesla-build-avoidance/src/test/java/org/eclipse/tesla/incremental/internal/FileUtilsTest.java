@@ -26,6 +26,12 @@ public class FileUtilsTest
     }
 
     @Test
+    public void testNormalize_NullFile()
+    {
+        assertNull( FileUtils.normalize( null ) );
+    }
+
+    @Test
     public void testResolve()
     {
         File basedir = new File( "target" ).getAbsoluteFile();

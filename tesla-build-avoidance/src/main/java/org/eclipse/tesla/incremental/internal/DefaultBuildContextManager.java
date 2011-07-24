@@ -206,11 +206,11 @@ public class DefaultBuildContextManager
 
     protected File getStateFile( File outputDirectory, File stateDirectory, String pluginId )
     {
-        String name = outputDirectory.getName();
-        name = name.substring( 0, Math.min( 4, name.length() ) ) + Integer.toHexString( name.hashCode() );
-        File workDir = new File( stateDirectory.getAbsolutePath(), name );
-        return new File( workDir, pluginId.substring( 0, Math.min( 4, pluginId.length() ) )
-            + Integer.toHexString( pluginId.hashCode() ) + ".ser" );
+        Digester digester = newDigester();
+        String digest1 =
+            DigestUtils.toHexString( digester.string( FileUtils.normalize( outputDirectory ).getPath() ).finish() );
+        String digest2 = DigestUtils.toHexString( digester.string( pluginId ).finish() );
+        return new File( stateDirectory.getAbsolutePath(), digest1 + "-" + digest2 + ".ser" );
     }
 
     protected void outputUpdated( Collection<File> outputs )

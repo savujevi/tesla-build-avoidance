@@ -11,7 +11,6 @@ package org.eclipse.tesla.incremental.internal;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -30,28 +29,9 @@ class DefaultDigester
 
     public DefaultDigester()
     {
-        digester = newMessageDigest();
+        digester = DigestUtils.newMessageDigest();
         digest = digester.digest();
         basedir = new File( "" ).getAbsoluteFile();
-    }
-
-    private static MessageDigest newMessageDigest()
-    {
-        try
-        {
-            return MessageDigest.getInstance( "SHA-1" );
-        }
-        catch ( NoSuchAlgorithmException e )
-        {
-            try
-            {
-                return MessageDigest.getInstance( "MD5" );
-            }
-            catch ( NoSuchAlgorithmException e2 )
-            {
-                throw new IllegalStateException( "Could not initialize configuration digester", e );
-            }
-        }
     }
 
     private static void xor( byte[] dst, byte[] src )
@@ -359,7 +339,7 @@ class DefaultDigester
         try
         {
             DefaultDigester clone = (DefaultDigester) super.clone();
-            clone.digester = newMessageDigest();
+            clone.digester = DigestUtils.newMessageDigest();
             return clone;
         }
         catch ( CloneNotSupportedException e )

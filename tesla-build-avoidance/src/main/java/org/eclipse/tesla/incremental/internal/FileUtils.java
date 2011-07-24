@@ -9,9 +9,34 @@ package org.eclipse.tesla.incremental.internal;
  *******************************************************************************/
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Locale;
 
 class FileUtils
 {
+
+    public static File normalize( File file )
+    {
+        if ( file == null )
+        {
+            return null;
+        }
+        try
+        {
+            return file.getCanonicalFile();
+        }
+        catch ( IOException e )
+        {
+            String path = file.getAbsolutePath();
+            File f1 = new File( path.toLowerCase( Locale.ENGLISH ) );
+            File f2 = new File( path.toUpperCase( Locale.ENGLISH ) );
+            if ( f1.equals( f2 ) )
+            {
+                path = f1.getPath();
+            }
+            return new File( path );
+        }
+    }
 
     public static File resolve( File file, File basedir )
     {
