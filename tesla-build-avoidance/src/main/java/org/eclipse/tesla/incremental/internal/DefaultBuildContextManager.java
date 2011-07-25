@@ -154,16 +154,24 @@ public class DefaultBuildContextManager
         return new DefaultDigester();
     }
 
+    protected boolean isFullBuild( File outputDirectory, File stateDirectory, String pluginId )
+    {
+        // hook to externally enforce full build
+        return false;
+    }
+
     private BuildState getBuildState( File outputDirectory, File stateDirectory, String pluginId )
     {
         File stateFile = getStateFile( outputDirectory, stateDirectory, pluginId );
+
+        boolean fullBuild = isFullBuild( outputDirectory, stateDirectory, pluginId );
 
         synchronized ( buildStates )
         {
             BuildState buildState = null;
 
             WeakReference<BuildState> ref = buildStates.get( stateFile );
-            if ( ref != null )
+            if ( !fullBuild && ref != null )
             {
                 buildState = ref.get();
             }
@@ -172,19 +180,24 @@ public class DefaultBuildContextManager
 
             if ( buildState == null )
             {
-                try
+                if ( !fullBuild && stateFile.isFile() )
                 {
-                    buildState = BuildState.load( stateFile );
-                }
-                catch ( IOException e )
-                {
-                    buildState = new BuildState( stateFile );
-                    if ( stateFile.isFile() )
+                    try
+                    {
+                        buildState = BuildState.load( stateFile );
+                    }
+                    catch ( IOException e )
                     {
                         log.warn( "Could not deserialize incremental build state from " + stateFile,
                                   log.isDebugEnabled() ? e : null );
                     }
                 }
+
+                if ( buildState == null )
+                {
+                    buildState = new BuildState( stateFile );
+                }
+
                 buildStates.put( stateFile, new WeakReference<BuildState>( buildState ) );
             }
 
