@@ -55,6 +55,7 @@ public interface BuildContext
      * @param digest The fingerprint of the configuration, must not be {@code null}.
      * @return {@code true} if the configuration has changed since the last build and a full rebuild should be done,
      *         {@code false} if an incremental build is sufficient.
+     * @see #newDigester()
      */
     boolean setConfiguration( PathSet paths, byte[] digest );
 

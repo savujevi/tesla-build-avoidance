@@ -165,7 +165,7 @@ public interface Digester
      * configurations that share common parameters are processed. The common parameters can be fed once into an initial
      * digester which is then cloned/forked in order to continue with the parameters specific to a given path set.
      * 
-     * @return The cloned digester.
+     * @return The cloned digester, never {@code null}.
      */
     Digester clone();
 
