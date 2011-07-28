@@ -872,6 +872,50 @@ public class DefaultBuildContextTest
     }
 
     @Test
+    public void testAddMessage_DeletionOfInputClearsAnyAssociatedErrors()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input1.java" );
+        input.createNewFile();
+
+        PathSet paths = new PathSet( inputDirectory );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input1.java" );
+            ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
+        }
+        finally
+        {
+            try
+            {
+                ctx.finish();
+                fail( "Build errors did not raise exception" );
+            }
+            catch ( BuildException e )
+            {
+                assertTrue( true );
+            }
+        }
+
+        input.delete();
+        assertEquals( input.getAbsolutePath(), false, input.exists() );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+    }
+
+    @Test
     public void testClearMessages_ClearedErrorsDoNotCauseBuildExceptionUponFinish()
     {
         File input = new File( inputDirectory, "input1.java" );

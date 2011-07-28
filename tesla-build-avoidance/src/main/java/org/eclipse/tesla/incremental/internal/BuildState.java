@@ -322,6 +322,8 @@ class BuildState
         if ( num == null )
         {
             num = Integer.valueOf( 1 );
+
+            inputStates.put( input, new FileState( input ) );
         }
         else
         {
