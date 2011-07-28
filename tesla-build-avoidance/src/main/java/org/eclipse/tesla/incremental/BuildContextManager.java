@@ -51,11 +51,15 @@ public interface BuildContextManager
 
     /**
      * Message severity to report a warning for an input file.
+     * 
+     * @see #addMessage(File, int, int, String, int, Throwable)
      */
     public static final int SEVERITY_WARNING = BuildContext.SEVERITY_WARNING;
 
     /**
      * Message severity to report an error for an input file.
+     * 
+     * @see #addMessage(File, int, int, String, int, Throwable)
      */
     public static final int SEVERITY_ERROR = BuildContext.SEVERITY_ERROR;
 
@@ -131,9 +135,11 @@ public interface BuildContextManager
     /**
      * Adds a warning/error message about a problem with the specified file to the build. For a build on the
      * commandline, these messages are usually turned into ordinary log messages send to the console. IDEs however may
-     * use different means to signal the problem to the user like error markers shown in the file's editor. Those
-     * markers are usually persistent until the underlying problem has been solved. Hence use of this method must be
-     * preceded with a call to {@link #clearMessages(File)} in order to reset any previous build state like this:
+     * use different means to signal the problem to the user like error markers shown in the file's editor.<br>
+     * <br>
+     * The warnings/errors are generally persistent until the underlying problem has been solved. Hence use of this
+     * method must be preceded with a call to {@link #clearMessages(File)} when processing an input file in order to
+     * reset any previous build state like this:
      * 
      * <pre>
      * buildContextManager.clearMessages( input );

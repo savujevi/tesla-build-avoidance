@@ -124,7 +124,6 @@ public class IncrementalMojo
             Collection<String> paths = context.getInputs( pathset, fullBuild );
 
             // process input files
-            int errors = 0;
             for ( String path : paths )
             {
                 File inputFile = new File( pathset.getBasedir(), path );
@@ -143,17 +142,12 @@ public class IncrementalMojo
                 }
                 catch ( IOException e )
                 {
-                    errors++;
                     context.addMessage( inputFile, 0, 0, "Could not read file", BuildContext.SEVERITY_ERROR, e );
                 }
             }
             if ( paths.isEmpty() )
             {
                 getLog().info( "No inputs found to process" );
-            }
-            if ( errors > 0 )
-            {
-                throw new MojoExecutionException( errors + " files could not be processed" );
             }
         }
         catch ( IOException e )
@@ -162,7 +156,7 @@ public class IncrementalMojo
         }
         finally
         {
-            // persist build context back to disk and delete any stale output files
+            // persist build context back to disk and delete any stale output files, throw exception in case of errors
             context.finish();
         }
     }

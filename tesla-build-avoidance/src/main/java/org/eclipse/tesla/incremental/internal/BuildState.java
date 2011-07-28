@@ -34,6 +34,9 @@ class BuildState
 
     private Map<PathSet, byte[]> configurations;
 
+    // input -> #errors
+    private Map<File, Integer> errors;
+
     // input -> (timestamp, size)
     private Map<File, FileState> inputStates;
 
@@ -51,6 +54,7 @@ class BuildState
         }
         this.stateFile = stateFile;
 
+        errors = new HashMap<File, Integer>();
         inputStates = new HashMap<File, FileState>( 256 );
         inputs = new HashMap<File, Collection<File>>( 256 );
         configurations = new HashMap<PathSet, byte[]>( 256 );
@@ -200,6 +204,7 @@ class BuildState
 
         if ( input != null )
         {
+            errors.remove( input );
             inputStates.remove( input );
 
             Collection<File> outputsOfInput = outputs.remove( input );
@@ -309,6 +314,36 @@ class BuildState
             }
         }
         return outputsOfInput == null || outputsOfInput.isEmpty();
+    }
+
+    public synchronized void addError( File input )
+    {
+        Integer num = errors.get( input );
+        if ( num == null )
+        {
+            num = Integer.valueOf( 1 );
+        }
+        else
+        {
+            num = Integer.valueOf( num.intValue() + 1 );
+        }
+        errors.put( input, num );
+    }
+
+    public synchronized int clearErrors( File input )
+    {
+        Integer num = errors.remove( input );
+        return ( num != null ) ? num.intValue() : 0;
+    }
+
+    public synchronized int getErrors()
+    {
+        int num = 0;
+        for ( Integer n : errors.values() )
+        {
+            num += n.intValue();
+        }
+        return num;
     }
 
 }

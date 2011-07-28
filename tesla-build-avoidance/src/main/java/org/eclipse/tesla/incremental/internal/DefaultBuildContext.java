@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import org.eclipse.tesla.incremental.BuildContext;
+import org.eclipse.tesla.incremental.BuildException;
 import org.eclipse.tesla.incremental.Digester;
 import org.eclipse.tesla.incremental.PathSet;
 
@@ -49,6 +50,8 @@ class DefaultBuildContext
     private final Collection<File> unmodifiedOutputs;
 
     private final long start;
+
+    private int errorDelta;
 
     public DefaultBuildContext( DefaultBuildContextManager manager, File outputDirectory, BuildState buildState )
     {
@@ -248,7 +251,14 @@ class DefaultBuildContext
         {
             long millis = System.currentTimeMillis() - start;
             log.debug( produced + " outputs produced, " + deletedObsolete + " obsolete outputs deleted, "
-                + deletedOrphaned + " orphaned outputs deleted, " + millis + " ms" );
+                + deletedOrphaned + " orphaned outputs deleted, " + errorDelta + " errors, " + millis + " ms" );
+        }
+
+        int errors = buildState.getErrors();
+        if ( errors > 0 )
+        {
+            throw new BuildException( errors + " error" + ( errors == 1 ? "" : "s" )
+                + " encountered, please see previous log/builds for more details" );
         }
     }
 
@@ -290,12 +300,24 @@ class DefaultBuildContext
     {
         failIfFinished();
 
+        input = FileUtils.resolve( input, null );
+
+        if ( severity == BuildContext.SEVERITY_ERROR )
+        {
+            buildState.addError( input );
+            errorDelta++;
+        }
+
         manager.addMessage( input, line, column, message, severity, cause );
     }
 
     public void clearMessages( File input )
     {
         failIfFinished();
+
+        input = FileUtils.resolve( input, null );
+
+        errorDelta -= buildState.clearErrors( input );
 
         manager.clearMessages( input );
     }

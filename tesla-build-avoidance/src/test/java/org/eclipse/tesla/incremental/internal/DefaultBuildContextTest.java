@@ -18,11 +18,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.UUID;
 
 import javax.inject.Inject;
 
 import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.BuildContextManager;
+import org.eclipse.tesla.incremental.BuildException;
 import org.eclipse.tesla.incremental.PathSet;
 import org.junit.After;
 import org.junit.Before;
@@ -41,7 +43,7 @@ public class DefaultBuildContextTest
     @Inject
     private BuildContextManager manager;
 
-    private File contextDirectory;
+    private File stateDirectory;
 
     private File inputDirectory;
 
@@ -52,19 +54,19 @@ public class DefaultBuildContextTest
         throws Exception
     {
         System.out.println( "========== " + testName.getMethodName() );
-        String name = getClass().getSimpleName() + Long.toHexString( System.currentTimeMillis() );
+        String name = getClass().getSimpleName() + UUID.randomUUID().toString().replace( "-", "" );
         outputDirectory = new File( "target/tests/" + name + "out" ).getAbsoluteFile();
         outputDirectory.mkdirs();
         inputDirectory = new File( "target/tests/" + name + "in" ).getAbsoluteFile();
         inputDirectory.mkdirs();
-        contextDirectory = new File( "target/tests/" + name + "ctx" ).getAbsoluteFile();
+        stateDirectory = new File( "target/tests/" + name + "ctx" ).getAbsoluteFile();
     }
 
     @After
     public void exit()
         throws Exception
     {
-        Utils.delete( contextDirectory );
+        Utils.delete( stateDirectory );
         Utils.delete( inputDirectory );
         Utils.delete( outputDirectory );
     }
@@ -76,7 +78,7 @@ public class DefaultBuildContextTest
 
     private BuildContext newContext( File outputDirectory, String pluginId )
     {
-        return manager.newContext( outputDirectory, contextDirectory, pluginId );
+        return manager.newContext( outputDirectory, stateDirectory, pluginId );
     }
 
     private void assertSetEquals( Collection<?> actual, Object... expected )
@@ -109,7 +111,7 @@ public class DefaultBuildContextTest
         }
 
         Queue<File> directories = new LinkedList<File>();
-        directories.add( contextDirectory );
+        directories.add( stateDirectory );
         while ( !directories.isEmpty() )
         {
             File directory = directories.remove();
@@ -792,6 +794,110 @@ public class DefaultBuildContextTest
         {
             ctx.finish();
         }
+    }
+
+    @Test
+    public void testAddMessage_ErrorCausesBuildExceptionUponFinish()
+    {
+        File input = new File( inputDirectory, "input1.java" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
+        }
+        finally
+        {
+            try
+            {
+                ctx.finish();
+                fail( "Build errors did not raise exception" );
+            }
+            catch ( BuildException e )
+            {
+                assertTrue( true );
+            }
+        }
+    }
+
+    @Test
+    public void testAddMessage_UnclearedErrorsCauseBuildExceptionUponFinishOfIncrementalBuild()
+    {
+        File input = new File( inputDirectory, "input1.java" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
+        }
+        finally
+        {
+            try
+            {
+                ctx.finish();
+                fail( "Build errors did not raise exception" );
+            }
+            catch ( BuildException e )
+            {
+                assertTrue( true );
+            }
+        }
+
+        ctx = newContext();
+        try
+        {
+            ctx.finish();
+            fail( "Build errors did not raise exception" );
+        }
+        catch ( BuildException e )
+        {
+            assertTrue( true );
+        }
+    }
+
+    @Test
+    public void testAddMessage_WarningDoesNotCauseBuildExceptionUponFinish()
+    {
+        File input = new File( inputDirectory, "input1.java" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_WARNING, null );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+    }
+
+    @Test
+    public void testClearMessages_ClearedErrorsDoNotCauseBuildExceptionUponFinish()
+    {
+        File input = new File( inputDirectory, "input1.java" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            ctx.addMessage( input, 1, 0, "test-1", BuildContext.SEVERITY_ERROR, null );
+            ctx.addMessage( input, 2, 0, "test-2", BuildContext.SEVERITY_ERROR, null );
+        }
+        finally
+        {
+            try
+            {
+                ctx.finish();
+                fail( "Build errors did not raise exception" );
+            }
+            catch ( BuildException e )
+            {
+                assertTrue( true );
+            }
+        }
+
+        ctx = newContext();
+        ctx.clearMessages( input );
+        ctx.finish();
     }
 
 }

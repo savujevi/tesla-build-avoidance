@@ -21,11 +21,15 @@ public interface BuildContext
 
     /**
      * Message severity to report a warning for an input file.
+     * 
+     * @see #addMessage(File, int, int, String, int, Throwable)
      */
     public static final int SEVERITY_WARNING = 1;
 
     /**
      * Message severity to report an error for an input file.
+     * 
+     * @see #addMessage(File, int, int, String, int, Throwable)
      */
     public static final int SEVERITY_ERROR = 2;
 
@@ -131,9 +135,11 @@ public interface BuildContext
     /**
      * Adds a warning/error message about a problem with the specified file to the build. For a build on the
      * commandline, these messages are usually turned into ordinary log messages send to the console. IDEs however may
-     * use different means to signal the problem to the user like error markers shown in the file's editor. Those
-     * markers are usually persistent until the underlying problem has been solved. Hence use of this method must be
-     * preceded with a call to {@link #clearMessages(File)} in order to reset any previous build state like this:
+     * use different means to signal the problem to the user like error markers shown in the file's editor.<br>
+     * <br>
+     * The warnings/errors are generally persistent until the underlying problem has been solved. Hence use of this
+     * method must be preceded with a call to {@link #clearMessages(File)} when processing an input file in order to
+     * reset any previous build state like this:
      * 
      * <pre>
      * buildContextManager.clearMessages( input );
@@ -142,6 +148,9 @@ public interface BuildContext
      * ...
      * buildContextManager.addMessage( input, ... );
      * </pre>
+     * 
+     * When {@link #finish()} gets called and any messages of severity {@link #SEVERITY_ERROR} exist, either added
+     * during the current build or still uncleared from a previous build, a {@link BuildException} is thrown.
      * 
      * @param input The input file to add a message for, must not be {@code null}.
      * @param line The one-based line number inside the file where the problem exists, may be non-positive if the line
@@ -169,6 +178,10 @@ public interface BuildContext
      * builds, persists the incremental build state back to disk and releases any resources associated with the context.
      * Once a build context has been finished, it must not be used for further operations. Finishing any already
      * finished build context has no effect.
+     * 
+     * @throws BuildException If the build added any error message or if any error message from previous builds were not
+     *             cleared.
+     * @see #addMessage(File, int, int, String, int, Throwable)
      */
     void finish();
 
