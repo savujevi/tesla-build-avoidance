@@ -104,15 +104,19 @@ public class DefaultBuildContextManager
             sb.append( "]" );
         }
         sb.append( ": " );
-        if ( message == null )
+        if ( message == null || message.length() <= 0 )
         {
             if ( cause != null )
             {
                 message = cause.getMessage();
-                if ( message == null )
+                if ( message == null || message.length() <= 0 )
                 {
                     message = cause.toString();
                 }
+            }
+            else
+            {
+                message = "(unknown issue)";
             }
         }
         sb.append( message );
