@@ -31,16 +31,14 @@ class DefaultInputResolutionContext
     private final BuildState buildState;
 
     public DefaultInputResolutionContext( BuildContext buildContext, PathSet pathSet, boolean fullBuild,
-                                            BuildState buildState )
+                                          BuildState buildState )
     {
         this.outputDirectory = buildContext.getOutputDirectory();
         this.pathSet = pathSet;
         this.fullBuild = fullBuild;
         this.buildState = buildState;
 
-        selector =
-            new Selector( pathSet.getIncludes(), pathSet.getExcludes(), pathSet.isDefaultExcludes(),
-                          pathSet.isCaseSensitive() );
+        selector = new Selector( pathSet );
     }
 
     public File getOutputDirectory()

@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
+import org.eclipse.tesla.incremental.PathSet;
+
 class Selector
 {
 
@@ -66,11 +68,16 @@ class Selector
 
     };
 
-    private String[] includes;
+    private final String[] includes;
 
-    private String[] excludes;
+    private final String[] excludes;
 
-    private boolean caseSensitive;
+    private final boolean caseSensitive;
+
+    public Selector( PathSet pathSet )
+    {
+        this( pathSet.getIncludes(), pathSet.getExcludes(), pathSet.isDefaultExcludes(), pathSet.isCaseSensitive() );
+    }
 
     public Selector( Collection<String> includes, Collection<String> excludes, boolean defaultExcludes,
                      boolean caseSensitive )

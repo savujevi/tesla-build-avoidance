@@ -142,7 +142,7 @@ public class PathSet
     {
         if ( basedir == null )
         {
-            throw new IllegalStateException( "base directory for path set not specified" );
+            throw new IllegalArgumentException( "base directory for path set not specified" );
         }
         this.basedir = basedir.getAbsoluteFile();
     }
@@ -175,6 +175,25 @@ public class PathSet
         this( basedir );
         addIncludes( includes );
         addExcludes( excludes );
+    }
+
+    /**
+     * Creates a copy of the specified path set.
+     * 
+     * @param pathSet The path set to copy, must not be {@code null}.
+     */
+    public PathSet( PathSet pathSet )
+    {
+        if ( pathSet == null )
+        {
+            throw new IllegalArgumentException( "path set not specified" );
+        }
+        this.basedir = pathSet.getBasedir();
+        addIncludes( pathSet.getIncludes() );
+        addExcludes( pathSet.getExcludes() );
+        setDefaultExcludes( pathSet.isDefaultExcludes() );
+        setCaseSensitive( pathSet.isCaseSensitive() );
+        setKind( pathSet.getKind() );
     }
 
     /**
