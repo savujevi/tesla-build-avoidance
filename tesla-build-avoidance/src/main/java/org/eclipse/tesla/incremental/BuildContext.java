@@ -149,8 +149,9 @@ public interface BuildContext
      * buildContextManager.addMessage( input, ... );
      * </pre>
      * 
-     * When {@link #finish()} gets called and any messages of severity {@link #SEVERITY_ERROR} exist, either added
-     * during the current build or still uncleared from a previous build, a {@link BuildException} is thrown.
+     * When {@link #finish()} gets called and any messages of severity {@link #SEVERITY_ERROR} exist for files matching
+     * the path sets passed to {@link #getInputs(PathSet, boolean)}, either added during the current build or still
+     * uncleared from a previous build, a {@link BuildException} is thrown.
      * 
      * @param input The input file to add a message for, must not be {@code null}.
      * @param line The one-based line number inside the file where the problem exists, may be non-positive if the line

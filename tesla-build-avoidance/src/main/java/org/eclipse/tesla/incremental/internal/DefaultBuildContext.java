@@ -49,6 +49,8 @@ class DefaultBuildContext
 
     private final Collection<File> unmodifiedOutputs;
 
+    private final Collection<PathSet> inputSets;
+
     private final long start;
 
     private final boolean fullBuild;
@@ -85,6 +87,7 @@ class DefaultBuildContext
         this.addedOutputs = new HashMap<File, Collection<File>>();
         this.modifiedOutputs = new HashSet<File>();
         this.unmodifiedOutputs = new HashSet<File>();
+        this.inputSets = new HashSet<PathSet>();
     }
 
     public Digester newDigester()
@@ -109,6 +112,13 @@ class DefaultBuildContext
     public synchronized Collection<String> getInputs( PathSet paths, boolean fullBuild )
     {
         failIfFinished();
+
+        if ( paths == null )
+        {
+            throw new IllegalArgumentException( "path set not specified" );
+        }
+
+        inputSets.add( new PathSet( paths ) );
 
         InputResolutionContext context =
             new DefaultInputResolutionContext( this, paths, fullBuild || this.fullBuild, buildState );
@@ -259,7 +269,7 @@ class DefaultBuildContext
                 + deletedOrphaned + " orphaned outputs deleted, " + errorDelta + " errors, " + millis + " ms" );
         }
 
-        int errors = buildState.getErrors();
+        int errors = buildState.getErrors( inputSets );
         if ( errors > 0 )
         {
             throw new BuildException( errors + " error" + ( errors == 1 ? "" : "s" )

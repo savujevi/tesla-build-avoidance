@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -313,7 +314,7 @@ class BuildState
                 }
             }
         }
-        return outputsOfInput == null || outputsOfInput.isEmpty();
+        return false;
     }
 
     public synchronized void addError( File input )
@@ -338,13 +339,34 @@ class BuildState
         return ( num != null ) ? num.intValue() : 0;
     }
 
-    public synchronized int getErrors()
+    public synchronized int getErrors( Collection<PathSet> pathSets )
     {
         int num = 0;
-        for ( Integer n : errors.values() )
+
+        if ( pathSets != null && !pathSets.isEmpty() && !errors.isEmpty() )
         {
-            num += n.intValue();
+            Map<PathSet, Selector> selectors = new LinkedHashMap<PathSet, Selector>();
+            for ( PathSet pathSet : pathSets )
+            {
+                selectors.put( pathSet, new Selector( pathSet ) );
+            }
+
+            for ( Map.Entry<File, Integer> entry : errors.entrySet() )
+            {
+                File file = entry.getKey();
+                for ( Map.Entry<PathSet, Selector> ent : selectors.entrySet() )
+                {
+                    File basedir = ent.getKey().getBasedir();
+                    String pathname = FileUtils.relativize( file, basedir );
+                    if ( pathname != null && ent.getValue().isSelected( pathname ) )
+                    {
+                        num += entry.getValue().intValue();
+                        break;
+                    }
+                }
+            }
         }
+
         return num;
     }
 

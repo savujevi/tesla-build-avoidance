@@ -798,12 +798,18 @@ public class DefaultBuildContextTest
 
     @Test
     public void testAddMessage_ErrorCausesBuildExceptionUponFinish()
+        throws Exception
     {
         File input = new File( inputDirectory, "input1.java" );
+        input.createNewFile();
+
+        PathSet paths = new PathSet( inputDirectory );
 
         BuildContext ctx = newContext();
         try
         {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input1.java" );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
         }
         finally
@@ -822,12 +828,18 @@ public class DefaultBuildContextTest
 
     @Test
     public void testAddMessage_UnclearedErrorsCauseBuildExceptionUponFinishOfIncrementalBuild()
+        throws Exception
     {
         File input = new File( inputDirectory, "input1.java" );
+        input.createNewFile();
+
+        PathSet paths = new PathSet( inputDirectory );
 
         BuildContext ctx = newContext();
         try
         {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input1.java" );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
         }
         finally
@@ -846,6 +858,8 @@ public class DefaultBuildContextTest
         ctx = newContext();
         try
         {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs );
             ctx.finish();
             fail( "Build errors did not raise exception" );
         }
@@ -856,13 +870,73 @@ public class DefaultBuildContextTest
     }
 
     @Test
-    public void testAddMessage_WarningDoesNotCauseBuildExceptionUponFinish()
+    public void testAddMessage_UnclearedErrorsInUnprocessedInputsDoNotCauseBuildExceptionUponFinishOfIncrementalBuild()
+        throws Exception
     {
         File input = new File( inputDirectory, "input1.java" );
+        input.createNewFile();
+
+        PathSet paths = new PathSet( inputDirectory );
 
         BuildContext ctx = newContext();
         try
         {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input1.java" );
+            ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
+        }
+        finally
+        {
+            try
+            {
+                ctx.finish();
+                fail( "Build errors did not raise exception" );
+            }
+            catch ( BuildException e )
+            {
+                assertTrue( true );
+            }
+        }
+
+        paths.addExcludes( "*.java" );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, true );
+            assertSetEquals( inputs );
+        }
+        finally
+        {
+            ctx.finish();
+        }
+    }
+
+    @Test
+    public void testAddMessage_WarningDoesNotCauseBuildExceptionUponFinish()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input1.java" );
+        input.createNewFile();
+
+        PathSet paths = new PathSet( inputDirectory );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input1.java" );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_WARNING, null );
         }
         finally
@@ -917,12 +991,18 @@ public class DefaultBuildContextTest
 
     @Test
     public void testClearMessages_ClearedErrorsDoNotCauseBuildExceptionUponFinish()
+        throws Exception
     {
         File input = new File( inputDirectory, "input1.java" );
+        input.createNewFile();
+
+        PathSet paths = new PathSet( inputDirectory );
 
         BuildContext ctx = newContext();
         try
         {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input1.java" );
             ctx.addMessage( input, 1, 0, "test-1", BuildContext.SEVERITY_ERROR, null );
             ctx.addMessage( input, 2, 0, "test-2", BuildContext.SEVERITY_ERROR, null );
         }
