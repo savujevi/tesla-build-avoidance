@@ -36,6 +36,11 @@ public class SpyBuildContextManager
         return updatedOutputs.get();
     }
 
+    public static void clear()
+    {
+        updatedOutputs.get().clear();
+    }
+
     public SpyBuildContextManager()
     {
         updatedOutputs.get().clear();
