@@ -51,9 +51,12 @@ class DefaultBuildContext
 
     private final long start;
 
+    private final boolean fullBuild;
+
     private int errorDelta;
 
-    public DefaultBuildContext( DefaultBuildContextManager manager, File outputDirectory, BuildState buildState )
+    public DefaultBuildContext( DefaultBuildContextManager manager, File outputDirectory, BuildState buildState,
+                                boolean fullBuild )
     {
         if ( manager == null )
         {
@@ -72,10 +75,11 @@ class DefaultBuildContext
 
         start = System.currentTimeMillis();
 
+        this.log = manager.log;
         this.manager = manager;
         this.outputDirectory = outputDirectory;
         this.buildState = buildState;
-        this.log = manager.log;
+        this.fullBuild = fullBuild;
 
         this.deletedInputs = new TreeSet<File>( Collections.reverseOrder() );
         this.addedOutputs = new HashMap<File, Collection<File>>();
@@ -106,7 +110,8 @@ class DefaultBuildContext
     {
         failIfFinished();
 
-        InputResolutionContext context = new DefaultInputResolutionContext( this, paths, fullBuild, buildState );
+        InputResolutionContext context =
+            new DefaultInputResolutionContext( this, paths, fullBuild || this.fullBuild, buildState );
 
         Collection<String> inputs = new ArrayList<String>();
 

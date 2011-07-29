@@ -145,9 +145,11 @@ public class DefaultBuildContextManager
 
         outputDirectory = FileUtils.resolve( outputDirectory, null );
 
-        BuildState buildState = getBuildState( outputDirectory, stateDirectory, pluginId );
+        boolean fullBuild = isFullBuild( outputDirectory, stateDirectory, pluginId );
 
-        DefaultBuildContext context = new DefaultBuildContext( this, outputDirectory, buildState );
+        BuildState buildState = getBuildState( outputDirectory, stateDirectory, pluginId, fullBuild );
+
+        DefaultBuildContext context = new DefaultBuildContext( this, outputDirectory, buildState, fullBuild );
         buildContexts.get().put( outputDirectory, context.reference );
 
         return context;
@@ -164,11 +166,9 @@ public class DefaultBuildContextManager
         return false;
     }
 
-    private BuildState getBuildState( File outputDirectory, File stateDirectory, String pluginId )
+    private BuildState getBuildState( File outputDirectory, File stateDirectory, String pluginId, boolean fullBuild )
     {
         File stateFile = getStateFile( outputDirectory, stateDirectory, pluginId );
-
-        boolean fullBuild = isFullBuild( outputDirectory, stateDirectory, pluginId );
 
         synchronized ( buildStates )
         {
