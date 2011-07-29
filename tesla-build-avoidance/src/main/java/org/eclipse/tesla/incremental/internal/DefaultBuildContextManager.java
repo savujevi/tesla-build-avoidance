@@ -27,20 +27,22 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.BuildContextManager;
 import org.eclipse.tesla.incremental.Digester;
 
+/**
+ * @plexus.component role="org.eclipse.tesla.incremental.BuildContextManager"
+ */
 @Named
 @Singleton
-@Component( role = BuildContextManager.class )
 public class DefaultBuildContextManager
     implements BuildContextManager
 {
 
-    @Requirement
+    /**
+     * @plexus.requirement
+     */
     protected Logger log;
 
     final Map<File, WeakReference<BuildState>> buildStates;
