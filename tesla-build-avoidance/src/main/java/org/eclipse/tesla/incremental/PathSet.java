@@ -90,6 +90,19 @@ public class PathSet
      * @param files The absolute or relative files to wrap into path sets, may be {@code null}.
      * @return The (possibly empty) list of path sets, never {@code null}.
      */
+    public static List<PathSet> fromFiles( String basedir, String... files )
+    {
+        return fromFiles( ( basedir != null ? new File( basedir ) : null ), files );
+    }
+
+    /**
+     * Creates one or more path sets that wrap the specified files.
+     * 
+     * @param basedir The base directory to resolve any relative files against, may be {@code null} to use the current
+     *            directory.
+     * @param files The absolute or relative files to wrap into path sets, may be {@code null}.
+     * @return The (possibly empty) list of path sets, never {@code null}.
+     */
     public static List<PathSet> fromFiles( File basedir, String... files )
     {
         if ( basedir == null )
