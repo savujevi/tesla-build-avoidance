@@ -158,7 +158,7 @@ public interface BuildContext
      *            number is unknown.
      * @param column The one-based column number inside the file where the problem exists, may be non-positive if the
      *            column number is unknown.
-     * @param message The warning/error message to add, may be {@code null}.
+     * @param message The warning/error message to add, may be {@code null} to derive a message from the issue cause.
      * @param severity The severity of the problem, one of {@link #SEVERITY_WARNING} or {@link #SEVERITY_ERROR}.
      * @param cause The cause of the problem, may be {@code null} if none.
      * @see #clearMessages(File)
