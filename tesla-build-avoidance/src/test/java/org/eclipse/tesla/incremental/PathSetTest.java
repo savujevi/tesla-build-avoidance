@@ -50,7 +50,7 @@ public class PathSetTest
     public void testFromFiles_NullBasedirResolvesRelativeFilesAgainstCurrentDirectory()
     {
         File basedir = new File( "" ).getAbsoluteFile();
-        List<PathSet> pss = PathSet.fromFiles( null, "Test.java" );
+        List<PathSet> pss = PathSet.fromFiles( (File) null, "Test.java" );
         assertNotNull( pss );
         assertEquals( 1, pss.size() );
         PathSet ps = pss.iterator().next();
