@@ -1,0 +1,41 @@
+/*******************************************************************************
+ * Copyright (c) 2011 Sonatype, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ *   http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
+
+import java.io.*;
+
+String[] expected =
+{
+    "hello.txt",
+};
+
+String[] unexpected =
+{
+    "greetings.txt",
+};
+
+File outDir = new File( basedir, "target/tesla" );
+
+for ( String path : expected )
+{
+    File file = new File( outDir, path );
+    System.out.println( "Checking existence of " + file );
+    if ( !file.isFile() )
+    {
+        throw new FileNotFoundException( file.getAbsolutePath() );
+    }
+}
+
+for ( String path : unexpected )
+{
+    File file = new File( outDir, path );
+    System.out.println( "Checking absence of " + file );
+    if ( file.exists() )
+    {
+        throw new IllegalStateException( file.getAbsolutePath() );
+    }
+}

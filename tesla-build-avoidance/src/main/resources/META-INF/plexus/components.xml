@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ ~ Copyright (c) 2011 Sonatype, Inc.
+ ~ All rights reserved. This program and the accompanying materials
+ ~ are made available under the terms of the Eclipse Public License v1.0
+ ~ which accompanies this distribution, and is available at
+ ~   http://www.eclipse.org/legal/epl-v10.html
+-->
+
+<!--
+NOTE: Singletons in Plexus 1.x work only if their role-hint equals the empty string.
+This hand-crafted descriptor ensures this.
+-->
+
+<component-set>
+  <components>
+    <component>
+      <role>org.eclipse.tesla.incremental.BuildContextManager</role>
+      <implementation>org.eclipse.tesla.incremental.internal.DefaultBuildContextManager</implementation>
+      <isolated-realm>false</isolated-realm>
+      <requirements>
+        <requirement>
+          <role>org.eclipse.tesla.incremental.internal.Logger</role>
+          <field-name>log</field-name>
+        </requirement>
+      </requirements>
+    </component>
+    <component>
+      <role>org.eclipse.tesla.incremental.internal.Logger</role>
+      <implementation>org.eclipse.tesla.incremental.internal.BuildContextLogger</implementation>
+      <isolated-realm>false</isolated-realm>
+    </component>
+  </components>
+</component-set>

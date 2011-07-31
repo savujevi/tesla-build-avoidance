@@ -20,12 +20,13 @@ import org.eclipse.tesla.incremental.BuildContextManager;
 import org.eclipse.tesla.incremental.PathSet;
 
 /**
- * A simple mojo that demonstrates the use of the incremental build support.
+ * A simple mojo that demonstrates the use of the incremental build support and delegates the actual output generation
+ * to another component which does not have direct access to the active build context due to its API.
  * 
- * @goal incremental
+ * @goal incremental-delegate
  * @phase process-resources
  */
-public class IncrementalMojo
+public class IncrementalDelegateMojo
     extends AbstractMojo
 {
 
@@ -76,6 +77,11 @@ public class IncrementalMojo
      * @parameter default-value="${project.build.filters}"
      */
     private Collection<String> filters;
+
+    /**
+     * @component
+     */
+    private OutputGenerator outputGenerator;
 
     // --- incremental build support --------------------------------
 
@@ -133,19 +139,8 @@ public class IncrementalMojo
 
                 getLog().info( "Processing input " + path + " > " + outputFile );
 
-                // register output files
-                context.addOutputs( inputFile, outputFile );
-
-                // generate output files
-                try
-                {
-                    context.clearMessages( inputFile );
-                    IOUtils.filter( inputFile, context.newOutputStream( outputFile ), encoding, filterProps );
-                }
-                catch ( IOException e )
-                {
-                    context.addMessage( inputFile, 0, 0, "Could not read file", BuildContext.SEVERITY_ERROR, e );
-                }
+                // generate output
+                outputGenerator.generate( inputFile, outputFile, filterProps );
             }
             if ( paths.isEmpty() )
             {

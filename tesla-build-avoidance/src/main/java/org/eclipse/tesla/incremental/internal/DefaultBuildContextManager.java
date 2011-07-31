@@ -31,23 +31,17 @@ import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.BuildContextManager;
 import org.eclipse.tesla.incremental.Digester;
 
-/**
- * @plexus.component role="org.eclipse.tesla.incremental.BuildContextManager"
- */
 @Named
 @Singleton
 public class DefaultBuildContextManager
     implements BuildContextManager
 {
 
-    /**
-     * @plexus.requirement
-     */
     protected Logger log;
 
     final Map<File, WeakReference<BuildState>> buildStates;
 
-    private InheritableThreadLocal<SortedMap<File, WeakReference<BuildContext>>> buildContexts =
+    private final InheritableThreadLocal<SortedMap<File, WeakReference<BuildContext>>> buildContexts =
         new InheritableThreadLocal<SortedMap<File, WeakReference<BuildContext>>>()
         {
             protected SortedMap<File, WeakReference<BuildContext>> initialValue()
