@@ -17,6 +17,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.BuildContextManager;
+import org.eclipse.tesla.incremental.BuildException;
 import org.eclipse.tesla.incremental.PathSet;
 
 /**
@@ -100,7 +101,7 @@ public class IncrementalDelegateMojo
     /**
      * @component
      */
-    private BuildContextManager contextManager;
+    private BuildContextManager buildContextManager;
 
     // --- mojo logic -----------------------------------------------
 
@@ -108,12 +109,12 @@ public class IncrementalDelegateMojo
         throws MojoExecutionException
     {
         // get build context for the output directory
-        BuildContext context = contextManager.newContext( outputDirectory, stateDirectory, pluginId );
+        BuildContext buildContext = buildContextManager.newContext( outputDirectory, stateDirectory, pluginId );
 
         try
         {
             // create fingerprint of our current configuration that is relevant for creation of output files
-            byte[] digest = context.newDigester() //
+            byte[] digest = buildContext.newDigester() //
             .string( encoding ).string( targetPath ).value( filtering ) // simple value
             .basedir( projectDirectory ).files( filters ) // potentially relative files, considers timestamp/length
             .finish();
@@ -126,16 +127,16 @@ public class IncrementalDelegateMojo
             PathSet pathset = new PathSet( inputDirectory, includes, excludes );
 
             // check whether current configuration for pathset has changed since last build
-            boolean fullBuild = context.setConfiguration( pathset, digest );
+            boolean fullBuild = buildContext.setConfiguration( pathset, digest );
 
             // get input files that need processing
-            Collection<String> paths = context.getInputs( pathset, fullBuild );
+            Collection<String> paths = buildContext.getInputs( pathset, fullBuild );
 
             // process input files
             for ( String path : paths )
             {
                 File inputFile = new File( pathset.getBasedir(), path );
-                File outputFile = new File( new File( context.getOutputDirectory(), targetPath ), path );
+                File outputFile = new File( new File( buildContext.getOutputDirectory(), targetPath ), path );
 
                 getLog().info( "Processing input " + path + " > " + outputFile );
 
@@ -154,7 +155,14 @@ public class IncrementalDelegateMojo
         finally
         {
             // persist build context back to disk and delete any stale output files, throw exception in case of errors
-            context.finish();
+            try
+            {
+                buildContext.finish();
+            }
+            catch ( BuildException e )
+            {
+                throw new MojoExecutionException( e.getMessage(), e );
+            }
         }
     }
 
