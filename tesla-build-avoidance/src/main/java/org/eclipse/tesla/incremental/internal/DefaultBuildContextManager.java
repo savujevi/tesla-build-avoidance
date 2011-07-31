@@ -151,7 +151,7 @@ public class DefaultBuildContextManager
         return context;
     }
 
-    protected Digester newDigester()
+    protected Digester newDigester( File outputDirectory )
     {
         return new DefaultDigester();
     }
@@ -219,7 +219,7 @@ public class DefaultBuildContextManager
 
     protected File getStateFile( File outputDirectory, File stateDirectory, String builderId )
     {
-        Digester digester = newDigester();
+        Digester digester = newDigester( outputDirectory );
         String digest1 =
             DigestUtils.toHexString( digester.string( FileUtils.normalize( outputDirectory ).getPath() ).finish() );
         String digest2 = DigestUtils.toHexString( digester.string( builderId ).finish() );

@@ -94,7 +94,7 @@ class DefaultBuildContext
     {
         failIfFinished();
 
-        return manager.newDigester();
+        return manager.newDigester( outputDirectory );
     }
 
     public File getOutputDirectory()
