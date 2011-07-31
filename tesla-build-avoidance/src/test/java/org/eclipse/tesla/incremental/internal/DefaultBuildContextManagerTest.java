@@ -66,7 +66,7 @@ public class DefaultBuildContextManagerTest
         DefaultBuildContextManager manager = new DefaultBuildContextManager()
         {
             @Override
-            protected boolean isFullBuild( File outputDirectory, File stateDirectory, String pluginId )
+            protected boolean isFullBuild( File outputDirectory, File stateDirectory, String builderId )
             {
                 return true;
             }

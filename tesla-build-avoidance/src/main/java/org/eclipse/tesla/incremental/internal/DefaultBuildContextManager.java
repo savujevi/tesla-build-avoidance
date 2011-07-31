@@ -130,7 +130,7 @@ public class DefaultBuildContextManager
         // defaults to noop
     }
 
-    public BuildContext newContext( File outputDirectory, File stateDirectory, String pluginId )
+    public BuildContext newContext( File outputDirectory, File stateDirectory, String builderId )
     {
         if ( outputDirectory == null )
         {
@@ -140,16 +140,16 @@ public class DefaultBuildContextManager
         {
             throw new IllegalArgumentException( "build state directory not specified" );
         }
-        if ( pluginId == null )
+        if ( builderId == null )
         {
-            throw new IllegalArgumentException( "plugin identifier not specified" );
+            throw new IllegalArgumentException( "builder identifier not specified" );
         }
 
         outputDirectory = FileUtils.resolve( outputDirectory, null );
 
-        boolean fullBuild = isFullBuild( outputDirectory, stateDirectory, pluginId );
+        boolean fullBuild = isFullBuild( outputDirectory, stateDirectory, builderId );
 
-        BuildState buildState = getBuildState( outputDirectory, stateDirectory, pluginId, fullBuild );
+        BuildState buildState = getBuildState( outputDirectory, stateDirectory, builderId, fullBuild );
 
         DefaultBuildContext context = new DefaultBuildContext( this, outputDirectory, buildState, fullBuild );
         buildContexts.get().put( outputDirectory, context.reference );
@@ -162,15 +162,15 @@ public class DefaultBuildContextManager
         return new DefaultDigester();
     }
 
-    protected boolean isFullBuild( File outputDirectory, File stateDirectory, String pluginId )
+    protected boolean isFullBuild( File outputDirectory, File stateDirectory, String builderId )
     {
         // hook to externally enforce full build
         return false;
     }
 
-    private BuildState getBuildState( File outputDirectory, File stateDirectory, String pluginId, boolean fullBuild )
+    private BuildState getBuildState( File outputDirectory, File stateDirectory, String builderId, boolean fullBuild )
     {
-        File stateFile = getStateFile( outputDirectory, stateDirectory, pluginId );
+        File stateFile = getStateFile( outputDirectory, stateDirectory, builderId );
 
         synchronized ( buildStates )
         {
@@ -223,12 +223,12 @@ public class DefaultBuildContextManager
         }
     }
 
-    protected File getStateFile( File outputDirectory, File stateDirectory, String pluginId )
+    protected File getStateFile( File outputDirectory, File stateDirectory, String builderId )
     {
         Digester digester = newDigester();
         String digest1 =
             DigestUtils.toHexString( digester.string( FileUtils.normalize( outputDirectory ).getPath() ).finish() );
-        String digest2 = DigestUtils.toHexString( digester.string( pluginId ).finish() );
+        String digest2 = DigestUtils.toHexString( digester.string( builderId ).finish() );
         return new File( stateDirectory.getAbsolutePath(), digest1 + "-" + digest2 + ".ser" );
     }
 

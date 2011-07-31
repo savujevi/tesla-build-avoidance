@@ -76,9 +76,9 @@ public class DefaultBuildContextTest
         return newContext( outputDirectory, "test-plugin:1.0" );
     }
 
-    private BuildContext newContext( File outputDirectory, String pluginId )
+    private BuildContext newContext( File outputDirectory, String builderId )
     {
-        return manager.newContext( outputDirectory, stateDirectory, pluginId );
+        return manager.newContext( outputDirectory, stateDirectory, builderId );
     }
 
     private void assertSetEquals( Collection<?> actual, Object... expected )

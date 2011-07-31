@@ -71,10 +71,10 @@ public interface BuildContextManager
      *            must not be {@code null}. This directory can safely be shared among all components/plugins producing
      *            build output and use a well-known location. However, this directory should reside in a location which
      *            gets automatically deleted during a full clean of the project output.
-     * @param pluginId The unique identifier of the component/plugin using the build context, must not be {@code null}.
+     * @param builderId The unique identifier of the component using the build context, must not be {@code null}.
      * @return The new build context, never {@code null}.
      */
-    BuildContext newContext( File outputDirectory, File stateDirectory, String pluginId );
+    BuildContext newContext( File outputDirectory, File stateDirectory, String builderId );
 
     /**
      * Registers the specified output for an input file/directory. This method may be called repeatedly for the same
