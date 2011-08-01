@@ -107,7 +107,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         Queue<File> directories = new LinkedList<File>();
@@ -138,7 +138,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -154,7 +154,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         ctx = newContext();
@@ -164,7 +164,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         ctx = newContext();
@@ -174,7 +174,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         ctx = newContext();
@@ -184,7 +184,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -200,7 +200,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         ctx = newContext( outputDirectory, "test-plugin:2" );
@@ -210,7 +210,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -227,7 +227,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         ctx = newContext();
@@ -237,7 +237,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -257,7 +257,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         File output = new File( name ).getAbsoluteFile();
@@ -279,7 +279,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output.getAbsolutePath(), true, output.isFile() );
@@ -340,7 +340,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -366,7 +366,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output1.getAbsolutePath(), true, output1.isFile() );
@@ -383,7 +383,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output1.getAbsolutePath(), false, output1.exists() );
@@ -415,7 +415,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output1.getAbsolutePath(), true, output1.isDirectory() );
@@ -434,7 +434,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output1.getAbsolutePath(), false, output1.exists() );
@@ -461,7 +461,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output.getAbsolutePath(), true, output.isFile() );
@@ -474,7 +474,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output.getAbsolutePath(), true, output.isFile() );
@@ -498,7 +498,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output1.getAbsolutePath(), true, output1.isFile() );
@@ -511,7 +511,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output1.getAbsolutePath(), true, output1.isFile() );
@@ -525,7 +525,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output3.getAbsolutePath(), true, output3.isFile() );
@@ -553,7 +553,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output1.getAbsolutePath(), true, output1.isFile() );
@@ -566,7 +566,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output1.getAbsolutePath(), true, output1.isFile() );
@@ -577,15 +577,15 @@ public class DefaultBuildContextTest
     public void testFinish_FinishAgainIsHarmless()
     {
         BuildContext ctx = newContext();
-        ctx.finish();
-        ctx.finish();
+        ctx.close();
+        ctx.close();
     }
 
     @Test( expected = IllegalStateException.class )
     public void testAddOutput_AfterFinishIsInvalid()
     {
         BuildContext ctx = newContext();
-        ctx.finish();
+        ctx.close();
         ctx.addOutput( inputDirectory, outputDirectory );
     }
 
@@ -610,7 +610,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         ctx = newContext();
@@ -621,7 +621,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -646,7 +646,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         ctx = newContext();
@@ -657,7 +657,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -681,7 +681,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         Utils.writeBytes( input, (byte) 32 );
@@ -694,7 +694,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -718,7 +718,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         output.delete();
@@ -732,7 +732,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -758,7 +758,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output1.getAbsolutePath(), true, output1.isFile() );
@@ -775,7 +775,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( output1.getAbsolutePath(), false, output1.exists() );
@@ -792,7 +792,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -816,7 +816,7 @@ public class DefaultBuildContextTest
         {
             try
             {
-                ctx.finish();
+                ctx.close();
                 fail( "Build errors did not raise exception" );
             }
             catch ( BuildException e )
@@ -846,7 +846,7 @@ public class DefaultBuildContextTest
         {
             try
             {
-                ctx.finish();
+                ctx.close();
                 fail( "Build errors did not raise exception" );
             }
             catch ( BuildException e )
@@ -860,7 +860,7 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs );
-            ctx.finish();
+            ctx.close();
             fail( "Build errors did not raise exception" );
         }
         catch ( BuildException e )
@@ -889,7 +889,7 @@ public class DefaultBuildContextTest
         {
             try
             {
-                ctx.finish();
+                ctx.close();
                 fail( "Build errors did not raise exception" );
             }
             catch ( BuildException e )
@@ -908,7 +908,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         ctx = newContext();
@@ -919,7 +919,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -941,7 +941,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -965,7 +965,7 @@ public class DefaultBuildContextTest
         {
             try
             {
-                ctx.finish();
+                ctx.close();
                 fail( "Build errors did not raise exception" );
             }
             catch ( BuildException e )
@@ -985,7 +985,7 @@ public class DefaultBuildContextTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
     }
 
@@ -1010,7 +1010,7 @@ public class DefaultBuildContextTest
         {
             try
             {
-                ctx.finish();
+                ctx.close();
                 fail( "Build errors did not raise exception" );
             }
             catch ( BuildException e )
@@ -1021,7 +1021,7 @@ public class DefaultBuildContextTest
 
         ctx = newContext();
         ctx.clearMessages( input );
-        ctx.finish();
+        ctx.close();
     }
 
 }

@@ -92,7 +92,7 @@ class DefaultBuildContext
 
     public Digester newDigester()
     {
-        failIfFinished();
+        failIfClosed();
 
         return manager.newDigester( outputDirectory );
     }
@@ -104,14 +104,14 @@ class DefaultBuildContext
 
     public boolean setConfiguration( PathSet paths, byte[] digest )
     {
-        failIfFinished();
+        failIfClosed();
 
         return buildState.setConfiguration( paths, digest );
     }
 
     public synchronized Collection<String> getInputs( PathSet paths, boolean fullBuild )
     {
-        failIfFinished();
+        failIfClosed();
 
         if ( paths == null )
         {
@@ -143,7 +143,7 @@ class DefaultBuildContext
     public OutputStream newOutputStream( File output )
         throws FileNotFoundException
     {
-        failIfFinished();
+        failIfClosed();
 
         output = FileUtils.resolve( output, null );
 
@@ -152,7 +152,7 @@ class DefaultBuildContext
 
     public void addOutput( File input, File output )
     {
-        failIfFinished();
+        failIfClosed();
 
         if ( output != null )
         {
@@ -162,7 +162,7 @@ class DefaultBuildContext
 
     public void addOutputs( File input, File... outputs )
     {
-        failIfFinished();
+        failIfClosed();
 
         if ( outputs != null && outputs.length > 0 )
         {
@@ -172,7 +172,7 @@ class DefaultBuildContext
 
     public void addOutputs( File input, Collection<File> outputs )
     {
-        failIfFinished();
+        failIfClosed();
 
         addOutputs( outputs, input );
     }
@@ -225,7 +225,7 @@ class DefaultBuildContext
         }
     }
 
-    public synchronized void finish()
+    public synchronized void close()
     {
         if ( reference.get() == null )
         {
@@ -313,7 +313,7 @@ class DefaultBuildContext
 
     public void addMessage( File input, int line, int column, String message, int severity, Throwable cause )
     {
-        failIfFinished();
+        failIfClosed();
 
         input = FileUtils.resolve( input, null );
 
@@ -328,7 +328,7 @@ class DefaultBuildContext
 
     public void clearMessages( File input )
     {
-        failIfFinished();
+        failIfClosed();
 
         input = FileUtils.resolve( input, null );
 
@@ -337,11 +337,11 @@ class DefaultBuildContext
         manager.clearMessages( input );
     }
 
-    private void failIfFinished()
+    private void failIfClosed()
     {
         if ( reference.get() == null )
         {
-            throw new IllegalStateException( "build context has already been finished" );
+            throw new IllegalStateException( "build context has already been closed" );
         }
     }
 

@@ -86,7 +86,7 @@ public class DefaultBuildContextManagerTest
         }
         finally
         {
-            ctx.finish();
+            ctx.close();
         }
 
         assertEquals( flags.toString(), 1, flags.size() );

@@ -162,7 +162,7 @@ public class IncrementalMojo
             // persist build context back to disk and delete any stale output files, throw exception in case of errors
             try
             {
-                buildContext.finish();
+                buildContext.close();
             }
             catch ( BuildException e )
             {

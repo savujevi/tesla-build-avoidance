@@ -8,6 +8,7 @@ package org.eclipse.tesla.incremental;
  *   http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.OutputStream;
@@ -17,6 +18,7 @@ import java.util.Collection;
  * Manages the updates of files within a particular output directory.
  */
 public interface BuildContext
+    extends Closeable
 {
 
     /**
@@ -149,7 +151,7 @@ public interface BuildContext
      * buildContextManager.addMessage( input, ... );
      * </pre>
      * 
-     * When {@link #finish()} gets called and any messages of severity {@link #SEVERITY_ERROR} exist for files matching
+     * When {@link #close()} gets called and any messages of severity {@link #SEVERITY_ERROR} exist for files matching
      * the path sets passed to {@link #getInputs(PathSet, boolean)}, either added during the current build or still
      * uncleared from a previous build, a {@link BuildException} is thrown.
      * 
@@ -175,15 +177,15 @@ public interface BuildContext
     void clearMessages( File input );
 
     /**
-     * Finishes updating of the output directory. Among others, this deletes any orphaned output files of previous
-     * builds, persists the incremental build state back to disk and releases any resources associated with the context.
-     * Once a build context has been finished, it must not be used for further operations. Finishing any already
-     * finished build context has no effect.
+     * Closes this build context and finishes updating of the output directory. Among others, this deletes any orphaned
+     * output files of previous builds, persists the incremental build state back to disk and releases any resources
+     * associated with the context. Once a build context has been finished, it must not be used for further operations.
+     * Finishing any already finished build context has no effect.
      * 
      * @throws BuildException If the build added any error message or if any error message from previous builds were not
      *             cleared.
      * @see #addMessage(File, int, int, String, int, Throwable)
      */
-    void finish();
+    void close();
 
 }
