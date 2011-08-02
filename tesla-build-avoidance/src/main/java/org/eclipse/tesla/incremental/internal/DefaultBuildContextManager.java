@@ -232,10 +232,10 @@ public class DefaultBuildContextManager
         // defaults to noop, useful for refreshing of IDE
     }
 
-    protected Collection<Path> resolve( final InputResolutionContext context )
+    protected Collection<Path> resolveInputs( final InputResolutionContext context )
     {
         final Collection<Path> dirtyPaths = new ArrayList<Path>();
-        final Collection<File> selectedFiles = new HashSet<File>();
+        final Collection<File> selectedFiles = new HashSet<File>( 128 );
 
         Selector selector = new Selector()
         {
@@ -274,6 +274,27 @@ public class DefaultBuildContextManager
         }
 
         return dirtyPaths;
+    }
+
+    protected Collection<File> resolveOutputs( PathSet pathSet )
+    {
+        final Collection<File> selectedFiles = new HashSet<File>( 128 );
+
+        Selector selector = new GlobSelector( pathSet );
+
+        DirectoryScan scan =
+            new DirectoryScan( pathSet.getBasedir(), selector, pathSet.isIncludingDirectories(),
+                               pathSet.isIncludingFiles() )
+            {
+                @Override
+                protected void onItem( String pathname, File file )
+                {
+                    selectedFiles.add( file );
+                }
+            };
+        scan.run();
+
+        return selectedFiles;
     }
 
     public void addOutput( File input, File output )
@@ -352,6 +373,27 @@ public class DefaultBuildContextManager
             if ( !updateOutputs.isEmpty() )
             {
                 outputUpdated( updateOutputs );
+            }
+        }
+    }
+
+    public void addOutputs( File input, PathSet outputs )
+    {
+        if ( outputs != null )
+        {
+            BuildContext buildContext = getBuildContext( outputs.getBasedir() );
+            if ( buildContext != null )
+            {
+                buildContext.addOutputs( input, outputs );
+            }
+            else
+            {
+                Collection<File> updateOutputs = resolveOutputs( outputs );
+
+                if ( !updateOutputs.isEmpty() )
+                {
+                    outputUpdated( updateOutputs );
+                }
             }
         }
     }

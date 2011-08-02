@@ -34,7 +34,7 @@ import java.util.Collection;
  * }
  * finally
  * {
- *     buildContext.finish();
+ *     buildContext.close();
  * }
  * </pre>
  * 
@@ -117,6 +117,22 @@ public interface BuildContextManager
      * @param outputs The output files/directories, may be {@code null}.
      */
     void addOutputs( File input, Collection<File> outputs );
+
+    /**
+     * Registers the specified outputs for an input file. This method may be called repeatedly for the same input file,
+     * e.g. in case a single input file produces more than one output file. If the output is not produced from a
+     * particular file but rather a possibly empty collection of input files that get aggregated, the input parameter
+     * should be {@code null}.<br>
+     * <br>
+     * <strong>Note:</strong> The various {@code addOutput*()} methods are used to describe the precise relationship
+     * between input files and output files, their proper use is crucial for incremental building to work flawlessly.
+     * 
+     * @param input The input file/directory, may be {@code null}.
+     * @param outputs The path set describing the output files/directories, may be {@code null}. <strong>Note:</strong>
+     *            For incremental building to work properly, this path set should only describe the outputs from the
+     *            given input and not overlap with the output of other inputs.
+     */
+    void addOutputs( File input, PathSet outputs );
 
     /**
      * Opens an output stream to the specified file. Use of this method is not obligatory but still strongly

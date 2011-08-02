@@ -72,10 +72,10 @@ public class DefaultBuildContextManagerTest
             }
 
             @Override
-            protected Collection<Path> resolve( InputResolutionContext context )
+            protected Collection<Path> resolveInputs( InputResolutionContext context )
             {
                 flags.add( context.isFullBuild() );
-                return super.resolve( context );
+                return super.resolveInputs( context );
             }
         };
 

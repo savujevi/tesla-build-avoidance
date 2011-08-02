@@ -125,7 +125,7 @@ class DefaultBuildContext
 
         Collection<String> inputs = new ArrayList<String>();
 
-        for ( Path path : manager.resolve( context ) )
+        for ( Path path : manager.resolveInputs( context ) )
         {
             if ( path.isDeleted() )
             {
@@ -177,13 +177,18 @@ class DefaultBuildContext
         addOutputs( outputs, input );
     }
 
+    public void addOutputs( File input, PathSet outputs )
+    {
+        failIfClosed();
+
+        if ( outputs != null )
+        {
+            addOutputs( manager.resolveOutputs( outputs ), input );
+        }
+    }
+
     private synchronized void addOutputs( Collection<File> outputs, File input )
     {
-        if ( outputs == null || outputs.isEmpty() )
-        {
-            return;
-        }
-
         input = FileUtils.resolve( input, null );
 
         Collection<File> addedOutputs = null;
@@ -197,17 +202,20 @@ class DefaultBuildContext
             }
         }
 
-        for ( File output : outputs )
+        if ( outputs != null )
         {
-            if ( output != null )
+            for ( File output : outputs )
             {
-                output = FileUtils.resolve( output, null );
-
-                modifiedOutputs.add( output );
-
-                if ( addedOutputs != null )
+                if ( output != null )
                 {
-                    addedOutputs.add( output );
+                    output = FileUtils.resolve( output, null );
+
+                    modifiedOutputs.add( output );
+
+                    if ( addedOutputs != null )
+                    {
+                        addedOutputs.add( output );
+                    }
                 }
             }
         }
