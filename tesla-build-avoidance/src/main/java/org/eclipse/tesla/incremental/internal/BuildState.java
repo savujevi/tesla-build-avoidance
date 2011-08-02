@@ -348,7 +348,7 @@ class BuildState
             Map<PathSet, Selector> selectors = new LinkedHashMap<PathSet, Selector>();
             for ( PathSet pathSet : pathSets )
             {
-                selectors.put( pathSet, new Selector( pathSet ) );
+                selectors.put( pathSet, new GlobSelector( pathSet ) );
             }
 
             for ( Map.Entry<File, Integer> entry : errors.entrySet() )

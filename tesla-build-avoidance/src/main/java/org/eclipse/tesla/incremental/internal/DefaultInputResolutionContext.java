@@ -38,7 +38,7 @@ class DefaultInputResolutionContext
         this.fullBuild = fullBuild;
         this.buildState = buildState;
 
-        selector = new Selector( pathSet );
+        selector = new GlobSelector( pathSet );
     }
 
     public File getOutputDirectory()

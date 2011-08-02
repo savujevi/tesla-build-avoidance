@@ -17,7 +17,7 @@ import java.util.Collections;
 
 import org.junit.Test;
 
-public class SelectorTest
+public class GlobSelectorTest
 {
 
     private static final Collection<String> EMPTY = Collections.emptySet();
@@ -25,7 +25,7 @@ public class SelectorTest
     @Test
     public void testIsSelected_DefaultExcludes()
     {
-        Selector selector = new Selector( Arrays.asList( "**" ), EMPTY, true, true );
+        Selector selector = new GlobSelector( Arrays.asList( "**" ), EMPTY, true, true );
         assertEquals( false, selector.isSelected( ".git" ) );
         assertEquals( false, selector.isSelected( "dir" + File.separator + ".svn" + File.separator + "entries" ) );
     }
@@ -33,7 +33,7 @@ public class SelectorTest
     @Test
     public void testIsSelected_NoDefaultExcludes()
     {
-        Selector selector = new Selector( Arrays.asList( "**" ), EMPTY, false, true );
+        Selector selector = new GlobSelector( Arrays.asList( "**" ), EMPTY, false, true );
         assertEquals( true, selector.isSelected( ".git" ) );
         assertEquals( true, selector.isSelected( "dir" + File.separator + ".svn" + File.separator + "entries" ) );
     }
@@ -41,7 +41,7 @@ public class SelectorTest
     @Test
     public void testIsSelected_CaseSensitive()
     {
-        Selector selector = new Selector( Arrays.asList( "*.java" ), EMPTY, false, true );
+        Selector selector = new GlobSelector( Arrays.asList( "*.java" ), EMPTY, false, true );
         assertEquals( true, selector.isSelected( "Test.java" ) );
         assertEquals( false, selector.isSelected( "Test.JAVA" ) );
     }
@@ -49,7 +49,7 @@ public class SelectorTest
     @Test
     public void testIsSelected_CaseInsensitive()
     {
-        Selector selector = new Selector( Arrays.asList( "*.java" ), EMPTY, false, false );
+        Selector selector = new GlobSelector( Arrays.asList( "*.java" ), EMPTY, false, false );
         assertEquals( true, selector.isSelected( "Test.java" ) );
         assertEquals( true, selector.isSelected( "Test.JAVA" ) );
     }
@@ -57,7 +57,7 @@ public class SelectorTest
     @Test
     public void testIsAncestorOfPotentiallySelected()
     {
-        Selector selector = new Selector( Arrays.asList( "**/*.java" ), Arrays.asList( "**/.svn/**" ), false, true );
+        Selector selector = new GlobSelector( Arrays.asList( "**/*.java" ), Arrays.asList( "**/.svn/**" ), false, true );
         assertEquals( true, selector.isAncestorOfPotentiallySelected( "dir" ) );
         assertEquals( false, selector.isAncestorOfPotentiallySelected( ".svn" ) );
     }
