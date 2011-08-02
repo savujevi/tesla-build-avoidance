@@ -30,6 +30,7 @@ import javax.inject.Singleton;
 import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.BuildContextManager;
 import org.eclipse.tesla.incremental.Digester;
+import org.eclipse.tesla.incremental.PathSet;
 
 @Named
 @Singleton
@@ -231,25 +232,41 @@ public class DefaultBuildContextManager
         // defaults to noop, useful for refreshing of IDE
     }
 
-    protected Collection<Path> resolve( InputResolutionContext context )
+    protected Collection<Path> resolve( final InputResolutionContext context )
     {
-        Collection<Path> dirtyPaths = new ArrayList<Path>();
-        Collection<File> selectedFiles = new HashSet<File>();
+        final Collection<Path> dirtyPaths = new ArrayList<Path>();
+        final Collection<File> selectedFiles = new HashSet<File>();
 
-        File basedir = context.getPathSet().getBasedir();
-        String[] children = basedir.list();
-        if ( children != null )
+        Selector selector = new Selector()
         {
-            if ( context.getPathSet().isIncludingDirectories() && context.isSelected( "" ) )
+            public boolean isSelected( String pathname )
             {
-                if ( context.isProcessingRequired( basedir ) )
-                {
-                    dirtyPaths.add( new Path( "" ) );
-                }
-                selectedFiles.add( basedir );
+                return context.isSelected( pathname );
             }
-            scan( selectedFiles, dirtyPaths, basedir, "", children, context );
-        }
+
+            public boolean isAncestorOfPotentiallySelected( String pathname )
+            {
+                return context.isAncestorOfPotentiallySelected( pathname );
+            }
+        };
+
+        PathSet pathSet = context.getPathSet();
+
+        DirectoryScan scan =
+            new DirectoryScan( pathSet.getBasedir(), selector, pathSet.isIncludingDirectories(),
+                               pathSet.isIncludingFiles() )
+            {
+                @Override
+                protected void onItem( String pathname, File file )
+                {
+                    selectedFiles.add( file );
+                    if ( context.isProcessingRequired( file ) )
+                    {
+                        dirtyPaths.add( new Path( pathname ) );
+                    }
+                }
+            };
+        scan.run();
 
         for ( String pathname : context.getDeletedInputPaths( selectedFiles ) )
         {
@@ -257,47 +274,6 @@ public class DefaultBuildContextManager
         }
 
         return dirtyPaths;
-    }
-
-    private void scan( Collection<File> selectedFiles, Collection<Path> paths, File dir, String pathPrefix,
-                       String[] files, InputResolutionContext context )
-    {
-        boolean includeDirs = context.getPathSet().isIncludingDirectories();
-        boolean includeFiles = context.getPathSet().isIncludingFiles();
-
-        for ( int i = 0; i < files.length; i++ )
-        {
-            String pathname = pathPrefix + files[i];
-            File file = new File( dir, files[i] );
-            String[] children = file.list();
-
-            if ( children == null || ( children.length <= 0 && file.isFile() ) )
-            {
-                if ( includeFiles && context.isSelected( pathname ) )
-                {
-                    selectedFiles.add( file );
-                    if ( context.isProcessingRequired( file ) )
-                    {
-                        paths.add( new Path( pathname ) );
-                    }
-                }
-            }
-            else
-            {
-                if ( includeDirs && context.isSelected( pathname ) )
-                {
-                    selectedFiles.add( file );
-                    if ( context.isProcessingRequired( file ) )
-                    {
-                        paths.add( new Path( pathname ) );
-                    }
-                }
-                if ( context.isAncestorOfPotentiallySelected( pathname ) )
-                {
-                    scan( selectedFiles, paths, file, pathname + File.separator, children, context );
-                }
-            }
-        }
     }
 
     public void addOutput( File input, File output )
