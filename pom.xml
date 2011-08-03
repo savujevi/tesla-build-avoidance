@@ -14,7 +14,7 @@
   <parent>
     <groupId>org.sonatype.forge</groupId>
     <artifactId>forge-parent</artifactId>
-    <version>6</version>
+    <version>10</version>
   </parent>
 
   <groupId>org.sonatype.tesla</groupId>
@@ -33,11 +33,6 @@
   </description>
   <inceptionYear>2011</inceptionYear>
 
-  <organization>
-    <name>Sonatype, Inc.</name>
-    <url>http://www.sonatype.com/</url>
-  </organization>
-
   <licenses>
     <license>
       <name>Eclipse Public License, Version 1.0</name>
@@ -47,19 +42,9 @@
   </licenses>
 
   <properties>
-    <forgeReleaseUrl>https://repository.sonatype.org/service/local/staging/deploy/maven2</forgeReleaseUrl>
   </properties>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>2.0</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

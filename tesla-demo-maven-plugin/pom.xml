@@ -14,7 +14,7 @@
   <parent>
     <groupId>org.sonatype.forge</groupId>
     <artifactId>forge-parent</artifactId>
-    <version>6</version>
+    <version>10</version>
   </parent>
 
   <groupId>org.sonatype.tesla</groupId>
@@ -28,11 +28,6 @@
   </description>
   <inceptionYear>2011</inceptionYear>
 
-  <organization>
-    <name>Sonatype, Inc.</name>
-    <url>http://www.sonatype.com/</url>
-  </organization>
-
   <licenses>
     <license>
       <name>Eclipse Public License, Version 1.0</name>
@@ -42,8 +37,6 @@
   </licenses>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <forgeReleaseUrl>https://repository.sonatype.org/service/local/staging/deploy/maven2</forgeReleaseUrl>
     <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
     <maven.version>2.0.6</maven.version>
   </properties>
@@ -67,20 +60,6 @@
   <build>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-clean-plugin</artifactId>
-          <version>2.4.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.3.2</version>
-          <configuration>
-            <source>1.5</source>
-            <target>1.5</target>
-          </configuration>
-        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
