@@ -86,6 +86,7 @@ class DefaultDigester
         {
             update( file.getAbsolutePath() );
             update( file.lastModified() );
+            update( file.length() );
         }
     }
 
