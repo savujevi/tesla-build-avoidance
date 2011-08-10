@@ -11,7 +11,6 @@ package org.eclipse.tesla.incremental.internal;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 
 /**
- * @plexus.component role="org.eclipse.tesla.incremental.internal.Logger"
  */
 public class BuildContextLogger
     extends AbstractLogEnabled

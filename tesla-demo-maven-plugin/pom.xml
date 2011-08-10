@@ -12,12 +12,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.sonatype.forge</groupId>
-    <artifactId>forge-parent</artifactId>
-    <version>10</version>
+    <groupId>org.eclipse.tesla</groupId>
+    <artifactId>tesla</artifactId>
+    <version>2</version>
   </parent>
 
-  <groupId>org.sonatype.tesla</groupId>
   <artifactId>tesla-demo-maven-plugin</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
@@ -27,14 +26,6 @@
     A simple Maven plugin to demonstrate and test the incremental output generator tooling.
   </description>
   <inceptionYear>2011</inceptionYear>
-
-  <licenses>
-    <license>
-      <name>Eclipse Public License, Version 1.0</name>
-      <url>http://www.eclipse.org/legal/epl-v10.html</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
 
   <properties>
     <surefire.redirectTestOutputToFile>true</surefire.redirectTestOutputToFile>
@@ -65,18 +56,9 @@
           <artifactId>maven-deploy-plugin</artifactId>
           <version>2.5</version>
           <configuration>
+            <!-- this is just a source code demo, so no need to pollute remote repos -->
             <skip>true</skip>
           </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-plugin-plugin</artifactId>
-          <version>2.8</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>2.4.3</version>
         </plugin>
       </plugins>
     </pluginManagement>
