@@ -14,7 +14,7 @@
   <parent>
     <groupId>org.eclipse.tesla</groupId>
     <artifactId>tesla</artifactId>
-    <version>2</version>
+    <version>3</version>
   </parent>
 
   <artifactId>tesla-demo-maven-plugin</artifactId>
