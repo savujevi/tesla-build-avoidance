@@ -21,6 +21,13 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+ <repositories>                                                                                                              
+    <repository>                                                                                                              
+      <id>tesla.releases</id>                                                                                                 
+      <url>http://jvz.io:8081/nexus/content/repositories/releases/</url>                                                      
+    </repository>                                                                                                             
+  </repositories>  
+  
   <modules>
     <module>tesla-build-avoidance</module>
     <module>tesla-demo-maven-plugin</module>
