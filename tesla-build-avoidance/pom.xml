@@ -15,6 +15,7 @@
     <groupId>org.eclipse.tesla</groupId>
     <artifactId>tesla</artifactId>
     <version>2</version>
+    <relativePath/>
   </parent>
 
   <artifactId>tesla-build-avoidance</artifactId>
