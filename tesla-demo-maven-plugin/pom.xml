@@ -41,7 +41,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.sonatype.tesla</groupId>
+      <groupId>org.eclipse.tesla</groupId>
       <artifactId>tesla-build-avoidance</artifactId>
       <version>${project.version}</version>
       <scope>compile</scope>
