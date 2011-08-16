@@ -142,12 +142,19 @@ class DefaultBuildContext
 
         for ( Path path : manager.resolveInputs( context ) )
         {
+            File inputFile = new File( paths.getBasedir(), path.getPath() );
+
             if ( path.isDeleted() )
             {
-                deletedInputs.add( new File( paths.getBasedir(), path.getPath() ) );
+                deletedInputs.add( inputFile );
             }
             else
             {
+                if ( addedOutputs.get( inputFile ) == null )
+                {
+                    addedOutputs.put( inputFile, Collections.<File> emptySet() );
+                }
+
                 inputs.add( path.getPath() );
             }
         }
@@ -210,7 +217,7 @@ class DefaultBuildContext
         if ( input != null )
         {
             addedOutputs = this.addedOutputs.get( input );
-            if ( addedOutputs == null )
+            if ( addedOutputs == null || addedOutputs.isEmpty() )
             {
                 addedOutputs = new TreeSet<File>();
                 this.addedOutputs.put( input, addedOutputs );

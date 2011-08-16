@@ -595,7 +595,6 @@ public class DefaultBuildContextTest
     {
         File input = new File( inputDirectory, "input.java" );
         input.createNewFile();
-        File output = new File( outputDirectory, "output.class" );
 
         PathSet paths = new PathSet( inputDirectory ).setKind( PathSet.Kind.FILES_AND_DIRECTORIES );
 
@@ -604,9 +603,6 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "", "input.java" );
-            output.createNewFile();
-            ctx.addOutputs( inputDirectory, outputDirectory );
-            ctx.addOutputs( input, output );
         }
         finally
         {
