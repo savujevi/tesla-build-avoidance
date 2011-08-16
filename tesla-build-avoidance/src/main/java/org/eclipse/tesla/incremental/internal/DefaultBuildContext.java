@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,6 +101,20 @@ class DefaultBuildContext
     public File getOutputDirectory()
     {
         return outputDirectory;
+    }
+
+    public Serializable getValue( Serializable key )
+    {
+        failIfClosed();
+
+        return buildState.getValue( key );
+    }
+
+    public void setValue( Serializable key, Serializable value )
+    {
+        failIfClosed();
+
+        buildState.setValue( key, value );
     }
 
     public boolean setConfiguration( PathSet paths, byte[] digest )

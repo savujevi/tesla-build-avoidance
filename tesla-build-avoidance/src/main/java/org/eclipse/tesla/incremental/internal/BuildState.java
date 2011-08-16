@@ -35,13 +35,15 @@ class BuildState
 
     private Map<PathSet, byte[]> configurations;
 
+    private Map<Serializable, Serializable> values;
+
     // input -> #errors
     private Map<File, Integer> errors;
 
     // input -> (timestamp, size)
     private Map<File, FileState> inputStates;
 
-    // output -> input
+    // output -> inputs
     private Map<File, Collection<File>> inputs;
 
     // input -> outputs
@@ -55,10 +57,11 @@ class BuildState
         }
         this.stateFile = stateFile;
 
+        configurations = new HashMap<PathSet, byte[]>();
+        values = new HashMap<Serializable, Serializable>();
         errors = new HashMap<File, Integer>();
         inputStates = new HashMap<File, FileState>( 256 );
         inputs = new HashMap<File, Collection<File>>( 256 );
-        configurations = new HashMap<PathSet, byte[]>( 256 );
         outputs = new HashMap<File, Collection<File>>( 256 );
     }
 
@@ -153,6 +156,23 @@ class BuildState
 
         byte[] old = configurations.put( paths, digest );
         return !Arrays.equals( digest, old );
+    }
+
+    public synchronized Serializable setValue( Serializable key, Serializable value )
+    {
+        if ( value == null )
+        {
+            return values.remove( key );
+        }
+        else
+        {
+            return values.put( key, value );
+        }
+    }
+
+    public synchronized Serializable getValue( Serializable key )
+    {
+        return values.get( key );
     }
 
     public synchronized Collection<File> setOutputs( File input, Collection<File> outputs )

@@ -12,6 +12,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Collection;
 
 /**
@@ -50,6 +51,25 @@ public interface BuildContext
      * @return The output directory being managed, never {@code null}.
      */
     File getOutputDirectory();
+
+    /**
+     * Gets the user value that has been associated with the specified key during the previous build. If a full build
+     * rather than an incremental build is performed, all previously saved user data is lost/reset.
+     * 
+     * @param key The key used to lookup the value, must not be {@code null}.
+     * @return The value associated with the key or {@code null} if none.
+     */
+    Serializable getValue( Serializable key );
+
+    /**
+     * Associates the specified user value with the given key for reuse during a future incremental build. The key-value
+     * pair is persisted as part of the incremental build state and allows builders to preserve any auxiliary data
+     * needed during incremental building.
+     * 
+     * @param key The key used to lookup the value, must not be {@code null}.
+     * @param value The user value to save, may be {@code null}.
+     */
+    void setValue( Serializable key, Serializable value );
 
     /**
      * Records the fingerprint of the current configuration that is relevant for the processing of the given path set
