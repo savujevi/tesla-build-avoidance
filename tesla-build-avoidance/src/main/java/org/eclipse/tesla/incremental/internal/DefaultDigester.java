@@ -85,8 +85,11 @@ class DefaultDigester
         if ( file != null )
         {
             update( file.getAbsolutePath() );
-            update( file.lastModified() );
-            update( file.length() );
+            if ( file.isFile() )
+            {
+                update( file.lastModified() );
+                update( file.length() );
+            }
         }
     }
 
