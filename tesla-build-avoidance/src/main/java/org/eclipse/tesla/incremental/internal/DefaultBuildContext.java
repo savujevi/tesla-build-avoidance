@@ -110,6 +110,25 @@ class DefaultBuildContext
         return buildState.getValue( key );
     }
 
+    public <T extends Serializable> T getValue( Serializable key, Class<T> valueType )
+    {
+        if ( valueType == null )
+        {
+            throw new IllegalArgumentException( "value type not specified" );
+        }
+
+        Object value = getValue( key );
+
+        try
+        {
+            return valueType.cast( value );
+        }
+        catch ( ClassCastException e )
+        {
+            return null;
+        }
+    }
+
     public void setValue( Serializable key, Serializable value )
     {
         failIfClosed();

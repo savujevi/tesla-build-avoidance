@@ -62,6 +62,17 @@ public interface BuildContext
     Serializable getValue( Serializable key );
 
     /**
+     * Gets the user value that has been associated with the specified key during the previous build. If a full build
+     * rather than an incremental build is performed, all previously saved user data is lost/reset.
+     * 
+     * @param key The key used to lookup the value, must not be {@code null}.
+     * @param valueType The expected type of the value, must not be {@code null}.
+     * @return The value associated with the key or {@code null} if none or if the existing value is not
+     *         assignment-compatible with the specified value type.
+     */
+    <T extends Serializable> T getValue( Serializable key, Class<T> valueType );
+
+    /**
      * Associates the specified user value with the given key for reuse during a future incremental build. The key-value
      * pair is persisted as part of the incremental build state and allows builders to preserve any auxiliary data
      * needed during incremental building.
