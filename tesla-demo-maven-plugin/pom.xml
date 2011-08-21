@@ -82,6 +82,11 @@
   <profiles>
     <profile>
       <id>run-its</id>
+      <activation>
+        <property>
+          <name>user.home</name>
+        </property>
+      </activation>
       <build>
         <plugins>
           <plugin>
