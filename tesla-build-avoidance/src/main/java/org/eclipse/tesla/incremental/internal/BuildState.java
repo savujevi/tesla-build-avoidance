@@ -304,13 +304,20 @@ class BuildState
         {
             return true;
         }
-        if ( previousState.getTimestamp() != input.lastModified() )
+        if ( previousState.isDirectory() != input.isDirectory() )
         {
             return true;
         }
-        if ( previousState.getSize() != input.length() )
+        if ( !previousState.isDirectory() )
         {
-            return true;
+            if ( previousState.getTimestamp() != input.lastModified() )
+            {
+                return true;
+            }
+            if ( previousState.getSize() != input.length() )
+            {
+                return true;
+            }
         }
 
         if ( isOutputMissing( input ) )

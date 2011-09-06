@@ -430,7 +430,7 @@ public class DefaultBuildContextTest
         try
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
-            assertSetEquals( inputs, "" );
+            assertSetEquals( inputs );
         }
         finally
         {
