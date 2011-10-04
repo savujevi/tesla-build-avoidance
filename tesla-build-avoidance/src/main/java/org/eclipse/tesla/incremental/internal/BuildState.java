@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeSet;
@@ -46,6 +47,12 @@ class BuildState
     // output -> inputs
     private Map<File, Collection<File>> inputs;
 
+    // input -> referenced inputs
+    private Map<File, Collection<File>> referencedInputs;
+
+    // referenced inputs -> (timestamp, size)
+    private Map<File, FileState> referencedInputsStates;
+
     // input -> outputs
     private transient Map<File, Collection<File>> outputs;
 
@@ -63,6 +70,8 @@ class BuildState
         inputStates = new HashMap<File, FileState>( 256 );
         inputs = new HashMap<File, Collection<File>>( 256 );
         outputs = new HashMap<File, Collection<File>>( 256 );
+        referencedInputs = new HashMap<File, Collection<File>>();
+        referencedInputsStates = new HashMap<File, FileState>();
     }
 
     public File getStateFile()
@@ -219,6 +228,23 @@ class BuildState
         return obsoleteOutputs;
     }
 
+    public synchronized void setReferencedInputs( File input, Collection<File> referencedInputs )
+    {
+        if ( referencedInputs != null && !referencedInputs.isEmpty() )
+        {
+            this.referencedInputs.put( input, new TreeSet<File>( referencedInputs ) );
+
+            for ( File referencedInput : referencedInputs )
+            {
+                referencedInputsStates.put( referencedInput, new FileState( referencedInput ) );
+            }
+        }
+        else
+        {
+            this.referencedInputs.remove( input );
+        }
+    }
+
     public synchronized Collection<File> removeInput( File input )
     {
         Collection<File> orphanedOutputs = Collections.emptySet();
@@ -300,29 +326,63 @@ class BuildState
     public synchronized boolean isProcessingRequired( File input )
     {
         FileState previousState = inputStates.get( input );
-        if ( previousState == null )
+        if ( isChangedOrDeleted( input, previousState ) )
         {
             return true;
-        }
-        if ( previousState.isDirectory() != input.isDirectory() )
-        {
-            return true;
-        }
-        if ( !previousState.isDirectory() )
-        {
-            if ( previousState.getTimestamp() != input.lastModified() )
-            {
-                return true;
-            }
-            if ( previousState.getSize() != input.length() )
-            {
-                return true;
-            }
         }
 
         if ( isOutputMissing( input ) )
         {
             return true;
+        }
+
+        if ( isReferencedInputChangedOrDeleted( input ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isReferencedInputChangedOrDeleted( File input )
+    {
+        Collection<File> referencedInputs = this.referencedInputs.get( input );
+        if ( referencedInputs == null )
+        {
+            return false;
+        }
+
+        for ( File referencedInput : referencedInputs )
+        {
+            if ( isChangedOrDeleted( referencedInput, referencedInputsStates.get( referencedInput ) ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isChangedOrDeleted( File file, FileState fileState )
+    {
+        if ( fileState == null )
+        {
+            return true;
+        }
+        if ( fileState.isDirectory() != file.isDirectory() )
+        {
+            return true;
+        }
+        if ( !fileState.isDirectory() )
+        {
+            if ( fileState.getTimestamp() != file.lastModified() )
+            {
+                return true;
+            }
+            if ( fileState.getSize() != file.length() )
+            {
+                return true;
+            }
         }
 
         return false;
@@ -395,6 +455,25 @@ class BuildState
         }
 
         return num;
+    }
+
+    /**
+     * Cleans up referenced inputs and reference inputs states that are not referenced from any input.
+     */
+    public void cleanupReferencedInputs()
+    {
+        referencedInputs.keySet().retainAll( outputs.keySet() );
+
+        // this should be okay performance-wise as it is unlikely to have very large number of referenced inputs
+        HashSet<File> allReferencedInputs = new HashSet<File>();
+        for ( Collection<File> referencedInputs : this.referencedInputs.values() )
+        {
+            if ( referencedInputs != null )
+            {
+                allReferencedInputs.addAll( referencedInputs );
+            }
+        }
+        referencedInputsStates.keySet().retainAll( allReferencedInputs );
     }
 
 }

@@ -168,6 +168,16 @@ public interface BuildContext
     void addOutputs( File input, PathSet outputs );
 
     /**
+     * Registers the specified files as referenced inputs from the input file. Referenced files, such as #include in
+     * c/cpp, are part of logical input of code generation and it is assumed that reprocessing of the input file is
+     * required if any of the referenced files changes.
+     * 
+     * @param input The input file, must not be {@code null}.
+     * @param referencedInputs The referenced input files, may be {@code null}.
+     */
+    void addReferencedInputs( File input, Collection<File> referencedInputs );
+
+    /**
      * Opens an output stream to the specified file. Use of this method is not obligatory but still strongly
      * recommended. Unlike the mere invocation of {@link java.io.FileInputStream#FileInputStream(File) new
      * FileInputStream( output )}, this method ensures that any parent directories of the output file are created.

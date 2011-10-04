@@ -12,6 +12,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
@@ -785,6 +786,86 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input1.java" );
+        }
+        finally
+        {
+            ctx.close();
+        }
+    }
+
+    @Test
+    public void testGetInputs_IncrementalBuildIncludesModifiedReferencedFiles()
+        throws IOException
+    {
+        File input = new File( inputDirectory, "input.g" );
+        input.createNewFile();
+        File referenced = new File( inputDirectory, "referenced.g" );
+        referenced.createNewFile();
+        File output = new File( outputDirectory, "output.java" );
+
+        PathSet paths = PathSet.fromFile( input );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.g" );
+            ctx.addReferencedInputs( input, Arrays.asList( referenced ) );
+            output.createNewFile();
+            ctx.addOutputs( input, output );
+        }
+        finally
+        {
+            ctx.close();
+        }
+
+        Utils.writeBytes( referenced, (byte) 32 );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.g" );
+        }
+        finally
+        {
+            ctx.close();
+        }
+    }
+
+    @Test
+    public void testGetInputs_IncrementalBuildIncludesDeletedReferencedFiles()
+        throws IOException
+    {
+        File input = new File( inputDirectory, "input.g" );
+        input.createNewFile();
+        File referenced = new File( inputDirectory, "referenced.g" );
+        referenced.createNewFile();
+        File output = new File( outputDirectory, "output.java" );
+
+        PathSet paths = PathSet.fromFile( input );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.g" );
+            ctx.addReferencedInputs( input, Arrays.asList( referenced ) );
+            output.createNewFile();
+            ctx.addOutputs( input, output );
+        }
+        finally
+        {
+            ctx.close();
+        }
+
+        assertTrue( referenced.delete() );
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.g" );
         }
         finally
         {

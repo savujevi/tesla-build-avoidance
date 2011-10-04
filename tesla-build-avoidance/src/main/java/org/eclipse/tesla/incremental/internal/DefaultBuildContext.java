@@ -46,6 +46,8 @@ class DefaultBuildContext
 
     private final Map<File, Collection<File>> addedOutputs;
 
+    private final Map<File, Collection<File>> referencedInputs;
+
     private final Collection<File> modifiedOutputs;
 
     private final Collection<File> unmodifiedOutputs;
@@ -86,6 +88,7 @@ class DefaultBuildContext
 
         this.deletedInputs = new TreeSet<File>( Collections.reverseOrder() );
         this.addedOutputs = new HashMap<File, Collection<File>>();
+        this.referencedInputs = new HashMap<File, Collection<File>>();
         this.modifiedOutputs = new HashSet<File>();
         this.unmodifiedOutputs = new HashSet<File>();
         this.inputSets = new HashSet<PathSet>();
@@ -290,6 +293,7 @@ class DefaultBuildContext
         for ( Map.Entry<File, Collection<File>> entry : addedOutputs.entrySet() )
         {
             File input = entry.getKey();
+            buildState.setReferencedInputs( input, referencedInputs.get( input ) );
             Collection<File> outputs = entry.getValue();
             Collection<File> obsoleteOutputs = buildState.setOutputs( input, outputs );
             modifiedOutputs.addAll( obsoleteOutputs );
@@ -303,6 +307,8 @@ class DefaultBuildContext
             modifiedOutputs.addAll( orphanedOutputs );
             deletedOrphaned += deleteSuperfluousOutputs( orphanedOutputs, "orphaned" );
         }
+
+        buildState.cleanupReferencedInputs();
 
         save();
 
@@ -394,4 +400,23 @@ class DefaultBuildContext
         }
     }
 
+    public void addReferencedInputs( File input, Collection<File> referencedInputs )
+    {
+        if ( referencedInputs != null )
+        {
+            input = FileUtils.resolve( input, null );
+
+            Collection<File> resolvedReferencedInputs = this.referencedInputs.get( input );
+            if ( resolvedReferencedInputs == null )
+            {
+                resolvedReferencedInputs = new HashSet<File>();
+                this.referencedInputs.put( input, resolvedReferencedInputs );
+            }
+
+            for ( File referencedInput : referencedInputs )
+            {
+                resolvedReferencedInputs.add( FileUtils.resolve( referencedInput, null ) );
+            }
+        }
+    }
 }
