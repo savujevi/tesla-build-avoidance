@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ ~ Copyright (c) 2011 Sonatype, Inc.
+ ~ All rights reserved. This program and the accompanying materials
+ ~ are made available under the terms of the Eclipse Public License v1.0
+ ~ which accompanies this distribution, and is available at
+ ~   http://www.eclipse.org/legal/epl-v10.html
+-->
+
+<!--
+NOTE: Singletons in Plexus 1.x work only if their role-hint equals the empty string.
+This hand-crafted descriptor ensures this.
+
+NOTE2: I am too lazy to find out what the above note actually means.
+-->
+
+<component-set>
+  <components>
+    <component>
+      <role>org.eclipse.tesla.incremental.maven.MavenBuildContextManager</role>
+      <implementation>org.eclipse.tesla.incremental.maven.internal.DefaultMavenBuildContextManager</implementation>
+      <isolated-realm>false</isolated-realm>
+      <requirements>
+        <requirement>
+          <role>org.eclipse.tesla.incremental.BuildContextManager</role>
+          <field-name>manager</field-name>
+        </requirement>
+      </requirements>
+    </component>
+  </components>
+</component-set>
