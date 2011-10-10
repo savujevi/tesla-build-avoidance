@@ -14,8 +14,9 @@ import org.eclipse.tesla.incremental.BuildContext;
  * may become configurable via well-known project property.</li>
  * <li>Automatically detect configuration changes based on
  * <ul>
- * <li>Maven plugin version or expanded plugin version in case of SNAPSHOT plugins</li>
- * <li>Project effective pom.xml file. In the future, this may be narrowed down.</li>
+ * <li>Maven plugin artifacts GAVs, file sizes and timestamps</li>
+ * <li>Project effective pom.xml. In the future, this may be narrowed down.</li>
+ * <li>Effective settings</li>
  * <li>Maven session user and system properties.</li>
  * </ul>
  * </li>
@@ -23,6 +24,7 @@ import org.eclipse.tesla.incremental.BuildContext;
  * 
  * @TODO decide how to handle volatile properties like ${maven.build.timestamp}. Should we always ignore them? Are there
  *       cases where output has to be always regenerated just to include new build timestamp?
+ * @TODO decide if settings (or effective settings) can contribute anything not already covered by project and session
  */
 public interface MavenBuildContextManager
 {

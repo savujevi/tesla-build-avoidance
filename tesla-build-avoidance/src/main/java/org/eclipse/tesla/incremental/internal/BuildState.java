@@ -34,7 +34,7 @@ class BuildState
 
     private transient File stateFile;
 
-    private Map<PathSet, byte[]> configurations;
+    private byte[] configuration;
 
     private Map<Serializable, Serializable> values;
 
@@ -64,7 +64,6 @@ class BuildState
         }
         this.stateFile = stateFile;
 
-        configurations = new HashMap<PathSet, byte[]>();
         values = new HashMap<Serializable, Serializable>();
         errors = new HashMap<File, Integer>();
         inputStates = new HashMap<File, FileState>( 256 );
@@ -152,19 +151,17 @@ class BuildState
         }
     }
 
-    public synchronized boolean setConfiguration( PathSet paths, byte[] digest )
+    public synchronized boolean setConfiguration( byte[] digest )
     {
-        if ( paths == null )
-        {
-            throw new IllegalArgumentException( "path set not specified" );
-        }
-        if ( digest == null )
-        {
-            throw new IllegalArgumentException( "configuration digest not specified" );
-        }
+        byte[] old = this.configuration;
+        this.configuration = digest; // assume this is immutable copy
 
-        byte[] old = configurations.put( paths, digest );
         return !Arrays.equals( digest, old );
+    }
+
+    public synchronized boolean isConfigurationChanged( byte[] digest )
+    {
+        return !Arrays.equals( this.configuration, digest );
     }
 
     public synchronized Serializable setValue( Serializable key, Serializable value )

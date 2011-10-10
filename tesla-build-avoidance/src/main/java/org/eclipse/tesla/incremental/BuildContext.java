@@ -83,31 +83,31 @@ public interface BuildContext
     void setValue( Serializable key, Serializable value );
 
     /**
-     * Records the fingerprint of the current configuration that is relevant for the processing of the given path set
-     * and checks whether the configuration has changed since the last build. Such a change in configuration usually
-     * means all input files matched by the path set need to be rebuild, regardless whether the files themselves are
-     * modified or not.
+     * Records the fingerprint of the current configuration and checks whether the configuration has changed since the
+     * last build. Such a change in configuration usually means all input files need to be rebuild, regardless whether
+     * the files themselves are modified.
      * 
-     * @param paths The path set to which the configuration applies, must not be {@code null}.
      * @param digest The fingerprint of the configuration, must not be {@code null}.
      * @return {@code true} if the configuration has changed since the last build and a full rebuild should be done,
      *         {@code false} if an incremental build is sufficient.
      * @see #newDigester()
+     * @see #getInputs(PathSet)
      */
-    boolean setConfiguration( PathSet paths, byte[] digest );
+    boolean setConfiguration( byte[] digest );
 
     /**
      * Determines all input files matched by the specified path set that require processing. An input file might require
      * processing because it was added or modified since the last build or because any of its previously produced
      * outputs is missing.
+     * <p>
+     * If configuration change was determined during invocation of {@link #setConfiguration(byte[])}, all input files
+     * are considered to require processing.
      * 
      * @param paths The path set whose inputs should be analyzed for changes, must not be {@code null}.
-     * @param fullBuild {@code true} if all present inputs should be retrieved, {@code false} if only modified input
-     *            files should be considered.
      * @return The (possibly empty) collection of input paths that need processing to update the output directory. The
      *         paths are relative to the base directory of the path set and not in any particular order.
      */
-    Collection<String> getInputs( PathSet paths, boolean fullBuild );
+    Collection<String> getInputs( PathSet paths );
 
     /**
      * Registers the specified output for an input file/directory. This method may be called repeatedly for the same

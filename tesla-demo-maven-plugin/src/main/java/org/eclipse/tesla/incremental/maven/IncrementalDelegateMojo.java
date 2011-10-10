@@ -123,14 +123,14 @@ public class IncrementalDelegateMojo
             IOUtils.load( filterProps, filters, projectDirectory );
             filterProps.putAll( System.getProperties() );
 
+            // check whether current configuration for pathset has changed since last build
+            buildContext.setConfiguration( digest );
+
             // set up pathset defining the input files to process
             PathSet pathset = new PathSet( inputDirectory, includes, excludes );
 
-            // check whether current configuration for pathset has changed since last build
-            boolean fullBuild = buildContext.setConfiguration( pathset, digest );
-
             // get input files that need processing
-            Collection<String> paths = buildContext.getInputs( pathset, fullBuild );
+            Collection<String> paths = buildContext.getInputs( pathset );
 
             // process input files
             for ( String path : paths )

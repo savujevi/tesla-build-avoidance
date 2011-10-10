@@ -60,6 +60,8 @@ class DefaultBuildContext
 
     private int errorDelta;
 
+    private byte[] configuration;
+
     public DefaultBuildContext( DefaultBuildContextManager manager, File outputDirectory, BuildState buildState,
                                 boolean fullBuild )
     {
@@ -139,14 +141,16 @@ class DefaultBuildContext
         buildState.setValue( key, value );
     }
 
-    public boolean setConfiguration( PathSet paths, byte[] digest )
+    public boolean setConfiguration( byte[] digest )
     {
         failIfClosed();
 
-        return buildState.setConfiguration( paths, digest );
+        this.configuration = digest;
+
+        return buildState.isConfigurationChanged( digest );
     }
 
-    public synchronized Collection<String> getInputs( PathSet paths, boolean fullBuild )
+    public synchronized Collection<String> getInputs( PathSet paths )
     {
         failIfClosed();
 
@@ -157,8 +161,9 @@ class DefaultBuildContext
 
         inputSets.add( new PathSet( paths ) );
 
-        InputResolutionContext context =
-            new DefaultInputResolutionContext( this, paths, fullBuild || this.fullBuild, buildState );
+        boolean fullBuild = this.fullBuild || buildState.isConfigurationChanged( this.configuration );
+
+        InputResolutionContext context = new DefaultInputResolutionContext( this, paths, fullBuild, buildState );
 
         Collection<String> inputs = new ArrayList<String>();
 
@@ -288,6 +293,8 @@ class DefaultBuildContext
 
         modifiedOutputs.removeAll( unmodifiedOutputs );
         int produced = modifiedOutputs.size();
+
+        buildState.setConfiguration( configuration );
 
         int deletedObsolete = 0;
         for ( Map.Entry<File, Collection<File>> entry : addedOutputs.entrySet() )

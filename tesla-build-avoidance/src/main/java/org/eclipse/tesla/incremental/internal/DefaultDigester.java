@@ -337,6 +337,13 @@ class DefaultDigester
         return result;
     }
 
+    public Digester bytes( byte[] bytes )
+    {
+        digester.update( bytes );
+
+        return digest();
+    }
+
     @Override
     public Digester clone()
     {

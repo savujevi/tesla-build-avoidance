@@ -169,4 +169,6 @@ public interface Digester
      */
     Digester clone();
 
+    Digester bytes( byte[] bytes );
+
 }

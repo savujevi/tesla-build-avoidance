@@ -82,7 +82,7 @@ public class DefaultBuildContextManagerTest
         BuildContext ctx = manager.newContext( outputDirectory, stateDirectory, "test-plugin:0.1" );
         try
         {
-            ctx.getInputs( new PathSet( inputDirectory ), false );
+            ctx.getInputs( new PathSet( inputDirectory ) );
         }
         finally
         {
