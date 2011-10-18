@@ -27,12 +27,15 @@ import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.BuildContextManager;
 import org.eclipse.tesla.incremental.BuildException;
 import org.eclipse.tesla.incremental.PathSet;
+import org.eclipse.tesla.incremental.test.SpyBuildContextManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.sonatype.guice.bean.containers.InjectedTest;
+
+import com.google.inject.Binder;
 
 public class DefaultBuildContextTest
     extends InjectedTest
@@ -61,6 +64,8 @@ public class DefaultBuildContextTest
         inputDirectory = new File( "target/tests/" + name + "in" ).getAbsoluteFile();
         inputDirectory.mkdirs();
         stateDirectory = new File( "target/tests/" + name + "ctx" ).getAbsoluteFile();
+
+        SpyBuildContextManager.clear();
     }
 
     @After
@@ -70,6 +75,14 @@ public class DefaultBuildContextTest
         Utils.delete( stateDirectory );
         Utils.delete( inputDirectory );
         Utils.delete( outputDirectory );
+    }
+
+    @Override
+    public void configure( Binder binder )
+    {
+        super.configure( binder );
+
+        binder.bind( BuildContextManager.class ).to( SpyBuildContextManager.class );
     }
 
     private BuildContext newContext()
@@ -343,6 +356,82 @@ public class DefaultBuildContextTest
         {
             ctx.close();
         }
+    }
+
+    @Test
+    public void testNewOutputStream_ChangedFileIsReportedAsModified()
+        throws Exception
+    {
+        File output = new File( outputDirectory, "test.txt" );
+
+        // prime output file contents
+        BuildContext ctx = newContext();
+        try
+        {
+            OutputStream os = ctx.newOutputStream( output );
+            os.write( "Hello world!".getBytes( "UTF-8" ) );
+            os.close();
+        }
+        finally
+        {
+            ctx.close();
+        }
+
+        // test content change adds the file to modified
+        ctx = newContext();
+        try
+        {
+            OutputStream os = ctx.newOutputStream( output );
+            os.write( "Hello new world!".getBytes( "UTF-8" ) );
+            os.close();
+
+            assertTrue( output.exists() );
+        }
+        finally
+        {
+            ctx.close();
+        }
+        assertTrue( SpyBuildContextManager.getUpdatedOutputs().contains( output ) );
+
+        // test content truncation adds the file to modified
+        ctx = newContext();
+        try
+        {
+            OutputStream os = ctx.newOutputStream( output );
+            os.close();
+
+            assertEquals( 0, output.length() );
+            assertTrue( output.exists() );
+        }
+        finally
+        {
+            ctx.close();
+        }
+        assertTrue( SpyBuildContextManager.getUpdatedOutputs().contains( output ) );
+
+    }
+
+    @Test
+    public void testNewOutputStream_NewFileIsReportedAsModified()
+        throws Exception
+    {
+        File output = new File( outputDirectory, "test.txt" );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            assertFalse( output.exists() );
+
+            OutputStream os = ctx.newOutputStream( output );
+            os.close();
+
+            assertTrue( output.exists() );
+        }
+        finally
+        {
+            ctx.close();
+        }
+        assertTrue( SpyBuildContextManager.getUpdatedOutputs().contains( output ) );
     }
 
     @Test
