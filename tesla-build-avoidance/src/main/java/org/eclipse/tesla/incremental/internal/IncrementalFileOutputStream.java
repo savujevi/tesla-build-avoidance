@@ -43,6 +43,8 @@ class IncrementalFileOutputStream
         this.file = file;
         this.context = context;
 
+        modified = !file.exists();
+
         raf = new RandomAccessFile( file, "rw" );
         buffer = new byte[1024 * 16];
 
