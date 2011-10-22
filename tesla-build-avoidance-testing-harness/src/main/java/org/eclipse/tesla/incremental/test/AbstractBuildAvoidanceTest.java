@@ -71,15 +71,11 @@ public class AbstractBuildAvoidanceTest
             BuildContext buildContext = lookup( MavenBuildContextManager.class ).newContext( session, execution );
 
             scope.seed( BuildContext.class, buildContext );
-            try
-            {
-                Mojo mojo = lookupConfiguredMojo( session, execution );
-                mojo.execute();
-            }
-            finally
-            {
-                buildContext.close();
-            }
+
+            Mojo mojo = lookupConfiguredMojo( session, execution );
+            mojo.execute();
+
+            buildContext.close(); // do not wrap BuildException so it can be intercepted and asserted
         }
         finally
         {
