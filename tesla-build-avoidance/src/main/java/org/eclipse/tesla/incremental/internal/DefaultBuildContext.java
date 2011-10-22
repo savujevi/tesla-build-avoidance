@@ -58,7 +58,7 @@ class DefaultBuildContext
 
     private final boolean fullBuild;
 
-    private int errorDelta;
+    private final Map<File, Collection<Message>> messages;
 
     private byte[] configuration;
 
@@ -94,6 +94,7 @@ class DefaultBuildContext
         this.modifiedOutputs = new HashSet<File>();
         this.unmodifiedOutputs = new HashSet<File>();
         this.inputSets = new HashSet<PathSet>();
+        this.messages = new HashMap<File, Collection<Message>>();
     }
 
     public Digester newDigester()
@@ -317,6 +318,8 @@ class DefaultBuildContext
 
         buildState.cleanupReferencedInputs();
 
+        Map<File, Collection<Message>> oldMessages = buildState.mergeMessages( messages );
+
         save();
 
         if ( !modifiedOutputs.isEmpty() )
@@ -327,8 +330,19 @@ class DefaultBuildContext
         if ( log.isDebugEnabled() )
         {
             long millis = System.currentTimeMillis() - start;
+            int errorDelta = getMessageCount( messages ) - getMessageCount( oldMessages );
             log.debug( produced + " outputs produced, " + deletedObsolete + " obsolete outputs deleted, "
-                + deletedOrphaned + " orphaned outputs deleted, " + errorDelta + " errors, " + millis + " ms" );
+                + deletedOrphaned + " orphaned outputs deleted, " + errorDelta + " messages, " + millis + " ms" );
+        }
+
+        // replay old messages
+        for ( Map.Entry<File, Collection<Message>> messages : buildState.getSelectedMessages( inputSets, oldMessages ).entrySet() )
+        {
+            for ( Message message : messages.getValue() )
+            {
+                manager.logMessage( messages.getKey(), message.getLine(), message.getColumn(), message.getMessage(),
+                                    message.getSeverity(), message.getCause() );
+            }
         }
 
         int errors = buildState.getErrors( inputSets );
@@ -337,6 +351,16 @@ class DefaultBuildContext
             throw new BuildException( errors + " error" + ( errors == 1 ? "" : "s" )
                 + " encountered, please see previous log/builds for more details" );
         }
+    }
+
+    private static int getMessageCount( Map<File, Collection<Message>> messages )
+    {
+        int count = 0;
+        for ( Collection<Message> message : messages.values() )
+        {
+            count += message.size();
+        }
+        return count;
     }
 
     private int deleteSuperfluousOutputs( Collection<File> outputs, String type )
@@ -379,11 +403,14 @@ class DefaultBuildContext
 
         input = FileUtils.resolve( input, null );
 
-        if ( severity == BuildContext.SEVERITY_ERROR )
+        Collection<Message> messages = this.messages.get( input );
+
+        if ( messages == null )
         {
-            buildState.addError( input );
-            errorDelta++;
+            throw new IllegalStateException( "addMessage without prio clearMessages" );
         }
+
+        messages.add( new Message( line, column, message, severity, cause ) );
 
         manager.addMessage( input, line, column, message, severity, cause );
     }
@@ -394,7 +421,9 @@ class DefaultBuildContext
 
         input = FileUtils.resolve( input, null );
 
-        errorDelta -= buildState.clearErrors( input );
+        buildState.clearErrors( input );
+
+        messages.put( input, new ArrayList<Message>() );
 
         manager.clearMessages( input );
     }

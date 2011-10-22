@@ -9,9 +9,12 @@ package org.eclipse.tesla.incremental.test;
  *******************************************************************************/
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 
 import org.eclipse.tesla.incremental.internal.DefaultBuildContextManager;
 
@@ -31,6 +34,15 @@ public class SpyBuildContextManager
             }
         };
 
+    private static final InheritableThreadLocal<Map<File, Collection<String>>> messages =
+        new InheritableThreadLocal<Map<File, Collection<String>>>()
+        {
+            protected Map<File, Collection<String>> initialValue()
+            {
+                return Collections.synchronizedMap( new LinkedHashMap<File, Collection<String>>() );
+            }
+        };
+
     public static Collection<File> getUpdatedOutputs()
     {
         return updatedOutputs.get();
@@ -39,11 +51,12 @@ public class SpyBuildContextManager
     public static void clear()
     {
         updatedOutputs.get().clear();
+        messages.get().clear();
     }
 
     public SpyBuildContextManager()
     {
-        updatedOutputs.get().clear();
+        SpyBuildContextManager.clear();
     }
 
     @Override
@@ -54,4 +67,23 @@ public class SpyBuildContextManager
         super.outputUpdated( outputs );
     }
 
+    @Override
+    public void logMessage( File input, int line, int column, String message, int severity, Throwable cause )
+    {
+        Collection<String> messages = SpyBuildContextManager.messages.get().get( input );
+        if ( messages == null )
+        {
+            messages = new ArrayList<String>();
+            SpyBuildContextManager.messages.get().put( input, messages );
+        }
+        messages.add( message );
+
+        super.logMessage( input, line, column, message, severity, cause );
+    }
+
+    public static Collection<String> getLogMessages( File input )
+    {
+        Collection<String> messages = SpyBuildContextManager.messages.get().get( input );
+        return messages != null ? messages : Collections.<String> emptySet();
+    }
 }
