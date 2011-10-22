@@ -70,6 +70,11 @@ public class DefaultBuildContextManager
 
     public void addMessage( File input, int line, int column, String message, int severity, Throwable cause )
     {
+        logMessage( input, line, column, message, severity, cause );
+    }
+
+    public void logMessage( File input, int line, int column, String message, int severity, Throwable cause )
+    {
         String msg = getMessage( input, line, column, message, cause );
         switch ( severity )
         {

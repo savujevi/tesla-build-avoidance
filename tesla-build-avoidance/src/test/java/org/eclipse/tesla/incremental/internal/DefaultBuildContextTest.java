@@ -976,6 +976,7 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input1.java" );
+            ctx.clearMessages( input );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
         }
         finally
@@ -1006,6 +1007,7 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input1.java" );
+            ctx.clearMessages( input );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
         }
         finally
@@ -1021,6 +1023,8 @@ public class DefaultBuildContextTest
             }
         }
 
+        SpyBuildContextManager.clear();
+
         ctx = newContext();
         try
         {
@@ -1033,6 +1037,56 @@ public class DefaultBuildContextTest
         {
             assertTrue( true );
         }
+
+        assertSetEquals( SpyBuildContextManager.getLogMessages( input ), "test" );
+    }
+
+    @Test
+    public void testAddMessage_ErrorOnReferencedFileCausesBuildExceptionUponFinish()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input.g" );
+        input.createNewFile();
+        File referenced = new File( inputDirectory, "referenced.g" );
+        referenced.createNewFile();
+
+        PathSet paths = PathSet.fromFile( input );
+
+        BuildContext ctx;
+
+        // initial build
+        ctx = newContext();
+        Collection<String> inputs = ctx.getInputs( paths, false );
+        assertSetEquals( inputs, "input.g" );
+        ctx.addReferencedInputs( input, Arrays.asList( referenced ) );
+        ctx.clearMessages( referenced );
+        ctx.addMessage( referenced, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
+        try
+        {
+            ctx.close();
+            fail( "Build errors did not raise exception" );
+        }
+        catch ( BuildException e )
+        {
+            assertTrue( true );
+        }
+
+        // no-change rebuild
+        SpyBuildContextManager.clear();
+        ctx = newContext();
+        inputs = ctx.getInputs( paths, false );
+        assertSetEquals( inputs );
+        try
+        {
+            ctx.close();
+            fail( "Build errors did not raise exception" );
+        }
+        catch ( BuildException e )
+        {
+            assertTrue( true );
+        }
+        assertSetEquals( SpyBuildContextManager.getLogMessages( referenced ), "test" );
+
     }
 
     @Test
@@ -1049,6 +1103,7 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input1.java" );
+            ctx.clearMessages( input );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
         }
         finally
@@ -1066,6 +1121,8 @@ public class DefaultBuildContextTest
 
         paths.addExcludes( "*.java" );
 
+        SpyBuildContextManager.clear();
+
         ctx = newContext();
         try
         {
@@ -1077,6 +1134,9 @@ public class DefaultBuildContextTest
             ctx.close();
         }
 
+        // unrelated messages should not be replayed
+        assertSetEquals( SpyBuildContextManager.getLogMessages( input ) );
+
         ctx = newContext();
         try
         {
@@ -1087,6 +1147,9 @@ public class DefaultBuildContextTest
         {
             ctx.close();
         }
+
+        // unrelated messages should not be replayed
+        assertSetEquals( SpyBuildContextManager.getLogMessages( input ) );
     }
 
     @Test
@@ -1103,6 +1166,7 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input1.java" );
+            ctx.clearMessages( input );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_WARNING, null );
         }
         finally
@@ -1125,6 +1189,7 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input1.java" );
+            ctx.clearMessages( input );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
         }
         finally
@@ -1169,6 +1234,7 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input1.java" );
+            ctx.clearMessages( input );
             ctx.addMessage( input, 1, 0, "test-1", BuildContext.SEVERITY_ERROR, null );
             ctx.addMessage( input, 2, 0, "test-2", BuildContext.SEVERITY_ERROR, null );
         }
@@ -1188,6 +1254,31 @@ public class DefaultBuildContextTest
         ctx = newContext();
         ctx.clearMessages( input );
         ctx.close();
+    }
+
+    @Test
+    public void testAddMessage_IllegalStateIfCalledWithoutClearMessage()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input1.java" );
+        input.createNewFile();
+
+        PathSet paths = new PathSet( inputDirectory );
+
+        BuildContext ctx = newContext();
+
+        Collection<String> inputs = ctx.getInputs( paths, false );
+        assertSetEquals( inputs, "input1.java" );
+
+        try
+        {
+            ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
+            fail( "addMessage without prio clearMessage did not raise exception" );
+        }
+        catch ( IllegalStateException e )
+        {
+            assertTrue( true );
+        }
     }
 
 }

@@ -24,8 +24,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
+import org.eclipse.tesla.incremental.BuildContext;
 import org.eclipse.tesla.incremental.PathSet;
 
 class BuildState
@@ -38,8 +40,8 @@ class BuildState
 
     private Map<Serializable, Serializable> values;
 
-    // input -> #errors
-    private Map<File, Integer> errors;
+    // input -> messages
+    private Map<File, Collection<Message>> messages;
 
     // input -> (timestamp, size)
     private Map<File, FileState> inputStates;
@@ -66,7 +68,7 @@ class BuildState
 
         configurations = new HashMap<PathSet, byte[]>();
         values = new HashMap<Serializable, Serializable>();
-        errors = new HashMap<File, Integer>();
+        messages = new HashMap<File, Collection<Message>>();
         inputStates = new HashMap<File, FileState>( 256 );
         inputs = new HashMap<File, Collection<File>>( 256 );
         outputs = new HashMap<File, Collection<File>>( 256 );
@@ -251,7 +253,7 @@ class BuildState
 
         if ( input != null )
         {
-            errors.remove( input );
+            messages.remove( input );
             inputStates.remove( input );
 
             Collection<File> outputsOfInput = outputs.remove( input );
@@ -404,33 +406,56 @@ class BuildState
         return false;
     }
 
-    public synchronized void addError( File input )
+    public synchronized Collection<Message> clearErrors( File input )
     {
-        Integer num = errors.get( input );
-        if ( num == null )
-        {
-            num = Integer.valueOf( 1 );
-
-            inputStates.put( input, new FileState( input ) );
-        }
-        else
-        {
-            num = Integer.valueOf( num.intValue() + 1 );
-        }
-        errors.put( input, num );
-    }
-
-    public synchronized int clearErrors( File input )
-    {
-        Integer num = errors.remove( input );
-        return ( num != null ) ? num.intValue() : 0;
+        return messages.remove( input );
     }
 
     public synchronized int getErrors( Collection<PathSet> pathSets )
     {
         int num = 0;
 
-        if ( pathSets != null && !pathSets.isEmpty() && !errors.isEmpty() )
+        for ( File input : getSelectedInputs( pathSets, messages.keySet(), referencedInputs ) )
+        {
+            Collection<Message> inputMessages = messages.get( input );
+            if ( inputMessages != null )
+            {
+                for ( Message message : inputMessages )
+                {
+                    if ( BuildContext.SEVERITY_ERROR == message.getSeverity() )
+                    {
+                        num++;
+                    }
+                }
+            }
+        }
+
+        return num;
+    }
+
+    public synchronized Map<File, Collection<Message>> getSelectedMessages( Collection<PathSet> pathSets,
+                                                                            Map<File, Collection<Message>> messages )
+    {
+        Map<File, Collection<Message>> selected = new HashMap<File, Collection<Message>>();
+
+        for ( File input : getSelectedInputs( pathSets, messages.keySet(), referencedInputs ) )
+        {
+            Collection<Message> inputMessages = messages.get( input );
+            if ( inputMessages != null )
+            {
+                selected.put( input, new ArrayList<Message>( inputMessages ) );
+            }
+        }
+
+        return selected;
+    }
+
+    private static Set<File> getSelectedInputs( Collection<PathSet> pathSets, Collection<File> inputs,
+                                                Map<File, Collection<File>> referenced )
+    {
+        Set<File> selected = new HashSet<File>();
+
+        if ( pathSets != null && !pathSets.isEmpty() )
         {
             Map<PathSet, Selector> selectors = new LinkedHashMap<PathSet, Selector>();
             for ( PathSet pathSet : pathSets )
@@ -438,23 +463,38 @@ class BuildState
                 selectors.put( pathSet, new GlobSelector( pathSet ) );
             }
 
-            for ( Map.Entry<File, Integer> entry : errors.entrySet() )
+            for ( File input : inputs )
             {
-                File file = entry.getKey();
-                for ( Map.Entry<PathSet, Selector> ent : selectors.entrySet() )
+                if ( isSelected( selectors, input ) )
                 {
-                    File basedir = ent.getKey().getBasedir();
-                    String pathname = FileUtils.relativize( file, basedir );
-                    if ( pathname != null && ent.getValue().isSelected( pathname ) )
+                    selected.add( input );
+                }
+            }
+
+            if ( referenced != null )
+            {
+                for ( Map.Entry<File, Collection<File>> entry : referenced.entrySet() )
+                {
+                    if ( isSelected( selectors, entry.getKey() ) )
                     {
-                        num += entry.getValue().intValue();
-                        break;
+                        selected.addAll( entry.getValue() );
                     }
                 }
             }
         }
 
-        return num;
+        return selected;
+    }
+
+    private static boolean isSelected( Map<PathSet, Selector> selectors, File file )
+    {
+        for ( Map.Entry<PathSet, Selector> ent : selectors.entrySet() )
+        {
+            File basedir = ent.getKey().getBasedir();
+            String pathname = FileUtils.relativize( file, basedir );
+            return pathname != null && ent.getValue().isSelected( pathname );
+        }
+        return false;
     }
 
     /**
@@ -474,6 +514,16 @@ class BuildState
             }
         }
         referencedInputsStates.keySet().retainAll( allReferencedInputs );
+    }
+
+    /**
+     * Returns old uncleared messages.
+     */
+    public Map<File, Collection<Message>> mergeMessages( Map<File, Collection<Message>> messages )
+    {
+        Map<File, Collection<Message>> oldMessages = new HashMap<File, Collection<Message>>( this.messages );
+        this.messages.putAll( messages );
+        return oldMessages;
     }
 
 }
