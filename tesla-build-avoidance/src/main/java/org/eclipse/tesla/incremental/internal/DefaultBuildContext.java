@@ -36,6 +36,8 @@ class DefaultBuildContext
 
     final WeakReference<BuildContext> reference;
 
+    private boolean closed = false;
+
     private final Logger log;
 
     private final File outputDirectory;
@@ -287,6 +289,23 @@ class DefaultBuildContext
 
         reference.clear();
 
+        if ( !closed )
+        {
+            manager.destroy( buildState );
+        }
+
+        closed = true;
+    }
+
+    public synchronized void commit()
+    {
+        if ( closed )
+        {
+            return;
+        }
+
+        closed = true;
+
         modifiedOutputs.removeAll( unmodifiedOutputs );
         int produced = modifiedOutputs.size();
 
@@ -423,7 +442,7 @@ class DefaultBuildContext
 
     private void failIfClosed()
     {
-        if ( reference.get() == null )
+        if ( closed )
         {
             throw new IllegalStateException( "build context has already been closed" );
         }

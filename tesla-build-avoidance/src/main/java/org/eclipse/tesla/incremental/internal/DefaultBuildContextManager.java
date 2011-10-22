@@ -168,6 +168,16 @@ public class DefaultBuildContextManager
         return false;
     }
 
+    void destroy(BuildState buildState)
+    {
+        File stateFile = buildState.getStateFile();
+        synchronized ( buildStates )
+        {
+            buildStates.remove( stateFile );
+            stateFile.delete();
+        }
+    }
+
     private BuildState getBuildState( File outputDirectory, File stateDirectory, String builderId, boolean fullBuild )
     {
         File stateFile = getStateFile( outputDirectory, stateDirectory, builderId );

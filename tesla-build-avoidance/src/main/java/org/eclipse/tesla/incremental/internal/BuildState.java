@@ -92,6 +92,7 @@ class BuildState
             {
                 BuildState state = (BuildState) ois.readObject();
                 state.stateFile = stateFile;
+
                 return state;
             }
             catch ( ClassNotFoundException e )
@@ -525,5 +526,4 @@ class BuildState
         this.messages.putAll( messages );
         return oldMessages;
     }
-
 }

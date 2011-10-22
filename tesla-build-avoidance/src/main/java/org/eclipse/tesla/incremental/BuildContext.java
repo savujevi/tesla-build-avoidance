@@ -19,7 +19,7 @@ import java.util.Collection;
  * Manages the updates of files within a particular output directory.
  */
 public interface BuildContext
-    extends Closeable
+//    extends Closeable
 {
 
     /**
@@ -208,7 +208,7 @@ public interface BuildContext
      * buildContextManager.addMessage( input, ... );
      * </pre>
      * 
-     * When {@link #close()} gets called and any messages of severity {@link #SEVERITY_ERROR} exist for files matching
+     * When {@link #commit()} gets called and any messages of severity {@link #SEVERITY_ERROR} exist for files matching
      * the path sets passed to {@link #getInputs(PathSet, boolean)}, either added during the current build or still
      * uncleared from a previous build, a {@link BuildException} is thrown.
      * 
@@ -234,15 +234,25 @@ public interface BuildContext
     void clearMessages( File input );
 
     /**
-     * Closes this build context and finishes updating of the output directory. Among others, this deletes any orphaned
-     * output files of previous builds, persists the incremental build state back to disk and releases any resources
-     * associated with the context. Once a build context has been finished, it must not be used for further operations.
-     * Finishing any already finished build context has no effect.
+     * Finishes changes associated with this build context. Among others, this deletes any orphaned output files of
+     * previous builds, persists the incremental build state back to disk and releases any resources associated with the
+     * context. Once a build context has been finished, it must not be used for further operations. Finishing any
+     * already finished build context has no effect.
      * 
      * @throws BuildException If the build added any error message or if any error message from previous builds were not
      *             cleared.
      * @see #addMessage(File, int, int, String, int, Throwable)
      */
-    void close();
+    void commit()
+        throws BuildException;
 
+    /**
+     * Releases resources associated with this build context.
+     * <p/>
+     * If this method is invoked for a build context that has not been finished yet, incremental build state from
+     * previous build is discarded and full build will be performed during next execution.
+     * 
+     * @see #commit()
+     */
+    void close();
 }

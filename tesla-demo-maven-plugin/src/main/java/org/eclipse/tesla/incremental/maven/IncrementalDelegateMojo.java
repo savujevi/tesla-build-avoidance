@@ -147,6 +147,16 @@ public class IncrementalDelegateMojo
             {
                 getLog().info( "No inputs found to process" );
             }
+
+            // persist build context back to disk and delete any stale output files, throw exception in case of errors
+            try
+            {
+                buildContext.commit();
+            }
+            catch ( BuildException e )
+            {
+                throw new MojoExecutionException( e.getMessage(), e );
+            }
         }
         catch ( IOException e )
         {
@@ -154,15 +164,7 @@ public class IncrementalDelegateMojo
         }
         finally
         {
-            // persist build context back to disk and delete any stale output files, throw exception in case of errors
-            try
-            {
-                buildContext.close();
-            }
-            catch ( BuildException e )
-            {
-                throw new MojoExecutionException( e.getMessage(), e );
-            }
+            buildContext.close();
         }
     }
 

@@ -118,6 +118,7 @@ public class DefaultBuildContextTest
         try
         {
             assertEquals( true, ctx.setConfiguration( paths, new byte[] { 1 } ) );
+            ctx.commit();
         }
         finally
         {
@@ -149,6 +150,7 @@ public class DefaultBuildContextTest
         try
         {
             assertEquals( true, ctx.setConfiguration( paths, new byte[] { 1 } ) );
+            ctx.commit();
         }
         finally
         {
@@ -165,6 +167,7 @@ public class DefaultBuildContextTest
         try
         {
             assertEquals( true, ctx.setConfiguration( paths, new byte[] { 1 } ) );
+            ctx.commit();
         }
         finally
         {
@@ -175,6 +178,7 @@ public class DefaultBuildContextTest
         try
         {
             assertEquals( false, ctx.setConfiguration( paths, new byte[] { 1 } ) );
+            ctx.commit();
         }
         finally
         {
@@ -185,6 +189,7 @@ public class DefaultBuildContextTest
         try
         {
             assertEquals( true, ctx.setConfiguration( paths, new byte[] { 2 } ) );
+            ctx.commit();
         }
         finally
         {
@@ -195,6 +200,7 @@ public class DefaultBuildContextTest
         try
         {
             assertEquals( false, ctx.setConfiguration( paths, new byte[] { 2 } ) );
+            ctx.commit();
         }
         finally
         {
@@ -211,6 +217,7 @@ public class DefaultBuildContextTest
         try
         {
             assertEquals( true, ctx.setConfiguration( paths, new byte[] { 1 } ) );
+            ctx.commit();
         }
         finally
         {
@@ -221,6 +228,7 @@ public class DefaultBuildContextTest
         try
         {
             assertEquals( true, ctx.setConfiguration( paths, new byte[] { 1 } ) );
+            ctx.commit();
         }
         finally
         {
@@ -248,6 +256,7 @@ public class DefaultBuildContextTest
         try
         {
             assertEquals( true, ctx.setConfiguration( paths2, new byte[] { 1 } ) );
+            ctx.commit();
         }
         finally
         {
@@ -268,6 +277,7 @@ public class DefaultBuildContextTest
             OutputStream os = ctx.newOutputStream( new File( name ) );
             os.write( data );
             os.close();
+            ctx.commit();
         }
         finally
         {
@@ -290,6 +300,7 @@ public class DefaultBuildContextTest
             OutputStream os = ctx.newOutputStream( new File( name ) );
             os.write( data );
             os.close();
+            ctx.commit();
         }
         finally
         {
@@ -348,6 +359,8 @@ public class DefaultBuildContextTest
             os.write( "Hello world!".getBytes( "UTF-8" ) );
             os.close();
 
+            ctx.commit();
+
             assertTrue( timestamp != output.lastModified() );
             data = Utils.readBytes( output );
             assertArrayEquals( "Hello world!".getBytes( "UTF-8" ), data );
@@ -371,6 +384,7 @@ public class DefaultBuildContextTest
             OutputStream os = ctx.newOutputStream( output );
             os.write( "Hello world!".getBytes( "UTF-8" ) );
             os.close();
+            ctx.commit();
         }
         finally
         {
@@ -384,6 +398,8 @@ public class DefaultBuildContextTest
             OutputStream os = ctx.newOutputStream( output );
             os.write( "Hello new world!".getBytes( "UTF-8" ) );
             os.close();
+
+            ctx.commit();
 
             assertTrue( output.exists() );
         }
@@ -399,6 +415,8 @@ public class DefaultBuildContextTest
         {
             OutputStream os = ctx.newOutputStream( output );
             os.close();
+
+            ctx.commit();
 
             assertEquals( 0, output.length() );
             assertTrue( output.exists() );
@@ -424,6 +442,8 @@ public class DefaultBuildContextTest
 
             OutputStream os = ctx.newOutputStream( output );
             os.close();
+
+            ctx.commit();
 
             assertTrue( output.exists() );
         }
@@ -453,6 +473,8 @@ public class DefaultBuildContextTest
             output1.createNewFile();
             output2.createNewFile();
             ctx.addOutputs( input, output1, output2 );
+
+            ctx.commit();
         }
         finally
         {
@@ -470,6 +492,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs );
+
+            ctx.commit();
         }
         finally
         {
@@ -502,6 +526,8 @@ public class DefaultBuildContextTest
             output2.mkdirs();
             ctx.addOutputs( input1, output1 );
             ctx.addOutputs( input2, output2 );
+
+            ctx.commit();
         }
         finally
         {
@@ -521,6 +547,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs );
+
+            ctx.commit();
         }
         finally
         {
@@ -548,6 +576,8 @@ public class DefaultBuildContextTest
             assertSetEquals( inputs, "input.java" );
             output.createNewFile();
             ctx.addOutputs( input, output );
+
+            ctx.commit();
         }
         finally
         {
@@ -561,6 +591,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs );
+
+            ctx.commit();
         }
         finally
         {
@@ -585,6 +617,8 @@ public class DefaultBuildContextTest
             output1.createNewFile();
             output2.createNewFile();
             ctx.addOutputs( input, output1, output2 );
+
+            ctx.commit();
         }
         finally
         {
@@ -598,6 +632,8 @@ public class DefaultBuildContextTest
         try
         {
             ctx.addOutputs( input, output1 );
+
+            ctx.commit();
         }
         finally
         {
@@ -612,6 +648,8 @@ public class DefaultBuildContextTest
         {
             output3.createNewFile();
             ctx.addOutputs( input, output3 );
+
+            ctx.commit();
         }
         finally
         {
@@ -640,6 +678,8 @@ public class DefaultBuildContextTest
             ctx.addOutputs( input1, output1 );
             ctx.addOutputs( input1, output2 );
             ctx.addOutputs( input2, output2 );
+
+            ctx.commit();
         }
         finally
         {
@@ -653,6 +693,8 @@ public class DefaultBuildContextTest
         try
         {
             ctx.addOutputs( input1, output1 );
+
+            ctx.commit();
         }
         finally
         {
@@ -667,6 +709,8 @@ public class DefaultBuildContextTest
     public void testFinish_FinishAgainIsHarmless()
     {
         BuildContext ctx = newContext();
+        ctx.commit();
+        ctx.commit();
         ctx.close();
         ctx.close();
     }
@@ -675,7 +719,7 @@ public class DefaultBuildContextTest
     public void testAddOutput_AfterFinishIsInvalid()
     {
         BuildContext ctx = newContext();
-        ctx.close();
+        ctx.commit();
         ctx.addOutput( inputDirectory, outputDirectory );
     }
 
@@ -693,6 +737,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "", "input.java" );
+
+            ctx.commit();
         }
         finally
         {
@@ -704,6 +750,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs );
+
+            ctx.commit();
         }
         finally
         {
@@ -729,6 +777,8 @@ public class DefaultBuildContextTest
             output.createNewFile();
             ctx.addOutputs( inputDirectory, outputDirectory );
             ctx.addOutputs( input, output );
+
+            ctx.commit();
         }
         finally
         {
@@ -740,6 +790,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, true );
             assertSetEquals( inputs, "", "input.java" );
+
+            ctx.commit();
         }
         finally
         {
@@ -764,6 +816,8 @@ public class DefaultBuildContextTest
             assertSetEquals( inputs, "input.java" );
             output.createNewFile();
             ctx.addOutputs( input, output );
+
+            ctx.commit();
         }
         finally
         {
@@ -777,6 +831,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input.java" );
+
+            ctx.commit();
         }
         finally
         {
@@ -801,6 +857,8 @@ public class DefaultBuildContextTest
             assertSetEquals( inputs, "input.java" );
             output.createNewFile();
             ctx.addOutputs( input, output );
+
+            ctx.commit();
         }
         finally
         {
@@ -815,6 +873,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input.java" );
+
+            ctx.commit();
         }
         finally
         {
@@ -841,6 +901,8 @@ public class DefaultBuildContextTest
             assertSetEquals( inputs, "input1.java" );
             output1.createNewFile();
             ctx.addOutputs( input1, output1 );
+
+            ctx.commit();
         }
         finally
         {
@@ -858,6 +920,8 @@ public class DefaultBuildContextTest
             assertSetEquals( inputs, "dir" + File.separator + "input2.java" );
             Utils.writeBytes( output2 );
             ctx.addOutputs( input2, output2 );
+
+            ctx.commit();
         }
         finally
         {
@@ -875,6 +939,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input1.java" );
+
+            ctx.commit();
         }
         finally
         {
@@ -902,6 +968,8 @@ public class DefaultBuildContextTest
             ctx.addReferencedInputs( input, Arrays.asList( referenced ) );
             output.createNewFile();
             ctx.addOutputs( input, output );
+
+            ctx.commit();
         }
         finally
         {
@@ -915,6 +983,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input.g" );
+
+            ctx.commit();
         }
         finally
         {
@@ -942,6 +1012,8 @@ public class DefaultBuildContextTest
             ctx.addReferencedInputs( input, Arrays.asList( referenced ) );
             output.createNewFile();
             ctx.addOutputs( input, output );
+
+            ctx.commit();
         }
         finally
         {
@@ -955,6 +1027,8 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs, "input.g" );
+
+            ctx.commit();
         }
         finally
         {
@@ -978,18 +1052,19 @@ public class DefaultBuildContextTest
             assertSetEquals( inputs, "input1.java" );
             ctx.clearMessages( input );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
-        }
-        finally
-        {
             try
             {
-                ctx.close();
+                ctx.commit();
                 fail( "Build errors did not raise exception" );
             }
             catch ( BuildException e )
             {
                 assertTrue( true );
             }
+        }
+        finally
+        {
+            ctx.close();
         }
     }
 
@@ -1009,18 +1084,19 @@ public class DefaultBuildContextTest
             assertSetEquals( inputs, "input1.java" );
             ctx.clearMessages( input );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
-        }
-        finally
-        {
             try
             {
-                ctx.close();
+                ctx.commit();
                 fail( "Build errors did not raise exception" );
             }
             catch ( BuildException e )
             {
                 assertTrue( true );
             }
+        }
+        finally
+        {
+            ctx.close();
         }
 
         SpyBuildContextManager.clear();
@@ -1030,12 +1106,16 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs );
-            ctx.close();
+            ctx.commit();
             fail( "Build errors did not raise exception" );
         }
         catch ( BuildException e )
         {
             assertTrue( true );
+        }
+        finally
+        {
+            ctx.close();
         }
 
         assertSetEquals( SpyBuildContextManager.getLogMessages( input ), "test" );
@@ -1063,13 +1143,14 @@ public class DefaultBuildContextTest
         ctx.addMessage( referenced, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
         try
         {
-            ctx.close();
+            ctx.commit();
             fail( "Build errors did not raise exception" );
         }
         catch ( BuildException e )
         {
             assertTrue( true );
         }
+        ctx.close();
 
         // no-change rebuild
         SpyBuildContextManager.clear();
@@ -1078,13 +1159,14 @@ public class DefaultBuildContextTest
         assertSetEquals( inputs );
         try
         {
-            ctx.close();
+            ctx.commit();
             fail( "Build errors did not raise exception" );
         }
         catch ( BuildException e )
         {
             assertTrue( true );
         }
+        ctx.close();
         assertSetEquals( SpyBuildContextManager.getLogMessages( referenced ), "test" );
 
     }
@@ -1105,18 +1187,19 @@ public class DefaultBuildContextTest
             assertSetEquals( inputs, "input1.java" );
             ctx.clearMessages( input );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
-        }
-        finally
-        {
             try
             {
-                ctx.close();
+                ctx.commit();
                 fail( "Build errors did not raise exception" );
             }
             catch ( BuildException e )
             {
                 assertTrue( true );
             }
+        }
+        finally
+        {
+            ctx.close();
         }
 
         paths.addExcludes( "*.java" );
@@ -1128,6 +1211,7 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs );
+            ctx.commit();
         }
         finally
         {
@@ -1142,6 +1226,7 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, true );
             assertSetEquals( inputs );
+            ctx.commit();
         }
         finally
         {
@@ -1168,6 +1253,7 @@ public class DefaultBuildContextTest
             assertSetEquals( inputs, "input1.java" );
             ctx.clearMessages( input );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_WARNING, null );
+            ctx.commit();
         }
         finally
         {
@@ -1191,18 +1277,19 @@ public class DefaultBuildContextTest
             assertSetEquals( inputs, "input1.java" );
             ctx.clearMessages( input );
             ctx.addMessage( input, 0, 0, "test", BuildContext.SEVERITY_ERROR, null );
-        }
-        finally
-        {
             try
             {
-                ctx.close();
+                ctx.commit();
                 fail( "Build errors did not raise exception" );
             }
             catch ( BuildException e )
             {
                 assertTrue( true );
             }
+        }
+        finally
+        {
+            ctx.close();
         }
 
         input.delete();
@@ -1213,6 +1300,7 @@ public class DefaultBuildContextTest
         {
             Collection<String> inputs = ctx.getInputs( paths, false );
             assertSetEquals( inputs );
+            ctx.commit();
         }
         finally
         {
@@ -1237,12 +1325,9 @@ public class DefaultBuildContextTest
             ctx.clearMessages( input );
             ctx.addMessage( input, 1, 0, "test-1", BuildContext.SEVERITY_ERROR, null );
             ctx.addMessage( input, 2, 0, "test-2", BuildContext.SEVERITY_ERROR, null );
-        }
-        finally
-        {
             try
             {
-                ctx.close();
+                ctx.commit();
                 fail( "Build errors did not raise exception" );
             }
             catch ( BuildException e )
@@ -1250,9 +1335,14 @@ public class DefaultBuildContextTest
                 assertTrue( true );
             }
         }
+        finally
+        {
+            ctx.close();
+        }
 
         ctx = newContext();
         ctx.clearMessages( input );
+        ctx.commit();
         ctx.close();
     }
 
@@ -1281,4 +1371,52 @@ public class DefaultBuildContextTest
         }
     }
 
+    @Test
+    public void testFinish_CloseWithoutCommitWipesBuildState()
+        throws Exception
+    {
+        File input = new File( inputDirectory, "input.java" );
+        input.createNewFile();
+
+        PathSet paths = new PathSet( inputDirectory ).setKind( PathSet.Kind.FILES_ONLY );
+
+        BuildContext ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs, "input.java" );
+
+            ctx.commit();
+
+        }
+        finally
+        {
+            ctx.close();
+        }
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+            assertSetEquals( inputs );
+
+            // NO COMMIT
+        }
+        finally
+        {
+            ctx.close();
+        }
+
+        ctx = newContext();
+        try
+        {
+            Collection<String> inputs = ctx.getInputs( paths, false );
+
+            assertSetEquals( inputs, "input.java" );
+        }
+        finally
+        {
+            ctx.close();
+        }
+    }
 }
