@@ -1025,7 +1025,7 @@ public class DefaultBuildContextTest
 
         // initial build
         ctx = newContext();
-        Collection<String> inputs = ctx.getInputs( paths, false );
+        Collection<String> inputs = ctx.getInputs( paths );
         assertSetEquals( inputs, "input.g" );
         ctx.addReferencedInputs( input, Arrays.asList( referenced ) );
         ctx.clearMessages( referenced );
@@ -1043,7 +1043,7 @@ public class DefaultBuildContextTest
         // no-change rebuild
         SpyBuildContextManager.clear();
         ctx = newContext();
-        inputs = ctx.getInputs( paths, false );
+        inputs = ctx.getInputs( paths );
         assertSetEquals( inputs );
         try
         {
@@ -1236,7 +1236,7 @@ public class DefaultBuildContextTest
 
         BuildContext ctx = newContext();
 
-        Collection<String> inputs = ctx.getInputs( paths, false );
+        Collection<String> inputs = ctx.getInputs( paths );
         assertSetEquals( inputs, "input1.java" );
 
         try
