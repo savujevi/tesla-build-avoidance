@@ -398,6 +398,11 @@ class DefaultBuildContext
 
     private void save()
     {
+        if ( log.isDebugEnabled() && buildState.isStale() )
+        {
+            log.debug( "Concurrent modification of build state file " + buildState.getStateFile().toString() );
+        }
+
         try
         {
             buildState.save();

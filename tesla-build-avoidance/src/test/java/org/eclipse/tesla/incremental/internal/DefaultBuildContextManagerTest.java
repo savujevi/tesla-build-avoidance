@@ -93,4 +93,27 @@ public class DefaultBuildContextManagerTest
         assertEquals( Boolean.TRUE, flags.get( 0 ) );
     }
 
+    @Test
+    public void testDetectStaleStateFile()
+    {
+        DefaultBuildContextManager manager = new DefaultBuildContextManager();
+
+        File file = new File( inputDirectory, "test" );
+
+        BuildContext ctx = manager.newContext( outputDirectory, stateDirectory, "test-plugin:0.1" );
+        ctx.setConfiguration( PathSet.fromFile( file ), new byte[] { 0 } );
+        ctx.commit();
+        ctx.close();
+
+        DefaultBuildContextManager manager2 = new DefaultBuildContextManager();
+        BuildContext ctx2 = manager2.newContext( outputDirectory, stateDirectory, "test-plugin:0.1" );
+        ctx2.setConfiguration( PathSet.fromFile( file ), new byte[] { 1, 2 } );
+        ctx2.commit();
+        ctx2.close();
+
+        ctx = manager.newContext( outputDirectory, stateDirectory, "test-plugin:0.1" );
+        assertTrue( ctx.setConfiguration( PathSet.fromFile( file ), new byte[] { 0 } ) );
+        ctx.commit();
+        ctx.close();
+    }
 }
