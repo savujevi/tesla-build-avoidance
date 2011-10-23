@@ -75,7 +75,9 @@ public class AbstractBuildAvoidanceTest
             Mojo mojo = lookupConfiguredMojo( session, execution );
             mojo.execute();
 
-            buildContext.close(); // do not wrap BuildException so it can be intercepted and asserted
+            buildContext.commit(); // do not wrap BuildException so it can be intercepted and asserted
+
+            buildContext.close();
         }
         finally
         {
