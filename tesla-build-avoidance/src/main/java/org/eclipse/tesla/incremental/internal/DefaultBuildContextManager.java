@@ -168,6 +168,16 @@ public class DefaultBuildContextManager
         return false;
     }
 
+    void destroy( BuildState buildState )
+    {
+        File stateFile = buildState.getStateFile();
+        synchronized ( buildStates )
+        {
+            buildStates.remove( stateFile );
+            stateFile.delete();
+        }
+    }
+
     private BuildState getBuildState( File outputDirectory, File stateDirectory, String builderId, boolean fullBuild )
     {
         File stateFile = getStateFile( outputDirectory, stateDirectory, builderId );
@@ -176,13 +186,13 @@ public class DefaultBuildContextManager
         {
             BuildState buildState = null;
 
+            purgeBuildStates();
+
             WeakReference<BuildState> ref = buildStates.get( stateFile );
             if ( !fullBuild && ref != null )
             {
                 buildState = ref.get();
             }
-
-            purgeBuildStates();
 
             if ( buildState == null )
             {
@@ -216,7 +226,7 @@ public class DefaultBuildContextManager
         for ( Iterator<Map.Entry<File, WeakReference<BuildState>>> it = buildStates.entrySet().iterator(); it.hasNext(); )
         {
             Map.Entry<File, WeakReference<BuildState>> entry = it.next();
-            if ( entry.getValue().get() == null )
+            if ( entry.getValue().get() == null || entry.getValue().get().isStale() )
             {
                 it.remove();
             }

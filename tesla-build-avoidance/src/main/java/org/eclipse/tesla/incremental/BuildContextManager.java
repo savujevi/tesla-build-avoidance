@@ -31,6 +31,7 @@ import java.util.Collection;
  *         // actually produce output file
  *         buildContext.addOutput( inputFile, outputFile );
  *     }
+ *     buildContext.commit();
  * }
  * finally
  * {

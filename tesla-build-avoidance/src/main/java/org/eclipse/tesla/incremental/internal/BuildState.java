@@ -36,6 +36,10 @@ class BuildState
 
     private transient File stateFile;
 
+    private transient long timestamp;
+
+    private transient long size;
+
     private byte[] configuration;
 
     private Map<Serializable, Serializable> values;
@@ -65,6 +69,8 @@ class BuildState
             throw new IllegalArgumentException( "state file not specified" );
         }
         this.stateFile = stateFile;
+        this.timestamp = stateFile.lastModified();
+        this.size = stateFile.length();
 
         values = new HashMap<Serializable, Serializable>();
         messages = new HashMap<File, Collection<Message>>();
@@ -91,6 +97,9 @@ class BuildState
             {
                 BuildState state = (BuildState) ois.readObject();
                 state.stateFile = stateFile;
+                state.timestamp = stateFile.lastModified();
+                state.size = stateFile.length();
+
                 return state;
             }
             catch ( ClassNotFoundException e )
@@ -150,6 +159,22 @@ class BuildState
         finally
         {
             fos.close();
+        }
+
+        this.timestamp = stateFile.lastModified();
+        this.size = stateFile.length();
+    }
+
+    boolean isStale()
+    {
+        if ( timestamp == 0 )
+        {
+            // state file did not exist
+            return stateFile.exists();
+        }
+        else
+        {
+            return !stateFile.canRead() || stateFile.length() != size || stateFile.lastModified() != timestamp;
         }
     }
 
@@ -522,5 +547,4 @@ class BuildState
         this.messages.putAll( messages );
         return oldMessages;
     }
-
 }
