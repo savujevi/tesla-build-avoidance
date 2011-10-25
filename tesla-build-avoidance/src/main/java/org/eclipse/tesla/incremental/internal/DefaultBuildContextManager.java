@@ -225,8 +225,8 @@ public class DefaultBuildContextManager
     {
         for ( Iterator<Map.Entry<File, WeakReference<BuildState>>> it = buildStates.entrySet().iterator(); it.hasNext(); )
         {
-            Map.Entry<File, WeakReference<BuildState>> entry = it.next();
-            if ( entry.getValue().get() == null || entry.getValue().get().isStale() )
+            BuildState buildState = it.next().getValue().get();
+            if ( buildState == null || buildState.isStale() )
             {
                 it.remove();
             }

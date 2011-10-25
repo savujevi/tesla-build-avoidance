@@ -19,7 +19,7 @@ import java.util.Collection;
  * Manages the updates of files within a particular output directory.
  */
 public interface BuildContext
-//    extends Closeable
+    extends Closeable
 {
 
     /**
