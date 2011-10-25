@@ -299,6 +299,11 @@ class DefaultBuildContext
 
     public synchronized void commit()
     {
+        if ( reference.get() == null )
+        {
+            throw new IllegalStateException( "commit() after close()" );
+        }
+
         if ( closed )
         {
             return;

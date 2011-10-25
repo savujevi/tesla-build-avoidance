@@ -716,6 +716,15 @@ public class DefaultBuildContextTest
     }
 
     @Test( expected = IllegalStateException.class )
+    public void testFinish_CommitAfterCloseIsInvalid()
+    {
+        BuildContext ctx = newContext();
+        ctx.commit();
+        ctx.close();
+        ctx.commit();
+    }
+
+    @Test( expected = IllegalStateException.class )
     public void testAddOutput_AfterFinishIsInvalid()
     {
         BuildContext ctx = newContext();
