@@ -81,6 +81,10 @@ class FileUtils
             {
                 pathname = "";
             }
+            else if ( basePath.endsWith( File.separator ) )
+            {
+                pathname = filePath.substring( basePath.length() );
+            }
             else if ( filePath.charAt( basePath.length() ) == File.separatorChar )
             {
                 pathname = filePath.substring( basePath.length() + 1 );

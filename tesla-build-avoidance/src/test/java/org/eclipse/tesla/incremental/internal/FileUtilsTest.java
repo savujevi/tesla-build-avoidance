@@ -112,4 +112,12 @@ public class FileUtilsTest
         assertEquals( file.getName(), FileUtils.relativize( file, basedir ) );
     }
 
+    @Test
+    public void testRelativize_RootDriveAsBasedir()
+    {
+        File basedir = new File( "D:/" );
+        File file = new File( basedir, "file.txt" ).getAbsoluteFile();
+        assertEquals( file.getName(), FileUtils.relativize( file, basedir ) );
+    }
+
 }
