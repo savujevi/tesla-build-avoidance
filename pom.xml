@@ -23,7 +23,9 @@
 
   <modules>
     <module>tesla-build-avoidance</module>
+    <!--
     <module>tesla-demo-maven-plugin</module>
+    -->
   </modules>
 
   <name>Tesla Build Avoidance Aggregator</name>
