@@ -13,9 +13,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.eclipse.tesla</groupId>
+    <groupId>io.tesla</groupId>
     <artifactId>tesla</artifactId>
-    <version>3</version>
+    <version>4</version>
   </parent>
 
   <artifactId>tesla-build-avoidance-aggregator</artifactId>
