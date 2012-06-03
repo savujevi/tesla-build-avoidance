@@ -24,7 +24,6 @@
 
   <modules>
     <module>tesla-build-avoidance</module>
-    <module>tesla-build-avoidance-testing-harness</module>
     <module>tesla-demo-maven-plugin</module>
   </modules>
 
@@ -49,4 +48,13 @@
       </plugins>
     </pluginManagement>
   </build>
+
+  <profiles>
+    <profile>
+      <id>testing-harness</id>
+      <modules>
+        <module>tesla-build-avoidance-testing-harness</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>
